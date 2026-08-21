@@ -10,6 +10,7 @@ import 'screens/patient_details_screen.dart';
 import 'screens/add_appointment_screen.dart';
 import 'screens/appointments_screen.dart';
 import 'screens/add_prescription_screen.dart';
+import 'screens/follow_up_screen.dart';
 
 void main() {
   runApp(const CliniTrackApp());
@@ -34,6 +35,7 @@ class CliniTrackApp extends StatelessWidget {
         '/add-appointment': (context) => const AddAppointmentScreen(),
         '/appointments': (context) => const AppointmentsScreen(),
         '/add-prescription': (context) => const AddPrescriptionScreen(),
+        '/follow-up': (context) => const FollowUpScreen(),
         '/more': (context) => const _DefaultPlaceholder(title: 'More'),
         '/profile': (context) => const _DefaultPlaceholder(title: 'Profile'),
         '/patient-details': (context) => const PatientDetailsScreen(),

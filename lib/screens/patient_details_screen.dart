@@ -93,7 +93,7 @@ class PatientDetailsScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).pushNamed('/add-appointment'),
+                  onPressed: () => Navigator.of(context).pushNamed('/follow-up'),
                   icon: const Icon(Icons.event_available_outlined, size: 18),
                   label: const Text('Follow-up'),
                 ),
