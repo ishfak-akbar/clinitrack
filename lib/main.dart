@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_colors.dart';
 import 'screens/splash_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() {
   runApp(const CliniTrackApp());
@@ -19,7 +20,8 @@ class CliniTrackApp extends StatelessWidget {
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),
-        '/login': (context) => const _DefaultPlaceholder(title: 'Login'),
+        '/login': (context) => const LoginScreen(),
+        '/dashboard': (context) => const _DefaultPlaceholder(title: 'Dashboard'),
       },
     );
   }
