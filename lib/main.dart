@@ -31,7 +31,7 @@ class CliniTrackApp extends StatelessWidget {
         '/add-patient': (context) => const AddPatientScreen(),
         '/patient-list': (context) => const PatientListScreen(),
         '/add-appointment': (context) => const AddAppointmentScreen(),
-        '/appointments': (context) => const _DefaultPlaceholder(title: 'Appointments'),
+        '/appointments': (context) => const AppointmentsScreen(),
         '/more': (context) => const _DefaultPlaceholder(title: 'More'),
         '/profile': (context) => const _DefaultPlaceholder(title: 'Profile'),
         '/patient-details': (context) => const PatientDetailsScreen(),
