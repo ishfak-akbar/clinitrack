@@ -4,6 +4,7 @@ import 'utils/app_colors.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/add_patient_screen.dart';
 
 void main() {
   runApp(const CliniTrackApp());
@@ -23,6 +24,7 @@ class CliniTrackApp extends StatelessWidget {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/dashboard': (context) => const DashboardScreen(),
+        '/add-patient': (context) => const AddPatientScreen(),
         '/patient-list': (context) => const _DefaultPlaceholder(title: 'Patient List'),
         '/add-appointment': (context) => const _DefaultPlaceholder(title: 'Add Appointment'),
         '/appointments': (context) => const _DefaultPlaceholder(title: 'Appointments'),
