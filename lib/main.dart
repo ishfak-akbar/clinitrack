@@ -3,6 +3,7 @@ import 'utils/app_theme.dart';
 import 'utils/app_colors.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/dashboard_screen.dart';
 
 void main() {
   runApp(const CliniTrackApp());
@@ -21,7 +22,14 @@ class CliniTrackApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
-        '/dashboard': (context) => const _DefaultPlaceholder(title: 'Dashboard'),
+        '/dashboard': (context) => const DashboardScreen(),
+        '/patient-list': (context) => const _DefaultPlaceholder(title: 'Patient List'),
+        '/add-appointment': (context) => const _DefaultPlaceholder(title: 'Add Appointment'),
+        '/appointments': (context) => const _DefaultPlaceholder(title: 'Appointments'),
+        '/more': (context) => const _DefaultPlaceholder(title: 'More'),
+        '/profile': (context) => const _DefaultPlaceholder(title: 'Profile'),
+        '/patient-details': (context) => const _DefaultPlaceholder(title: 'Patient Details'),
+
       },
     );
   }
