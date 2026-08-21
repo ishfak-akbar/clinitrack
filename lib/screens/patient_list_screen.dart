@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/patient_list_tile.dart';
+import '../widgets/app_add_fab.dart';
 
 class PatientListScreen extends StatefulWidget {
   const PatientListScreen({super.key});
@@ -79,10 +80,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).pushNamed('/add-patient'),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: const AppAddFab(routeName: '/add-patient'),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: const AppBottomNav(currentIndex: 1),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/dashboard_stat_card.dart';
+import '../widgets/app_add_fab.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -97,10 +98,7 @@ class DashboardScreen extends StatelessWidget {
           }),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).pushNamed('/add-appointment'),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: const AppAddFab(routeName: '/add-appointment'),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: const AppBottomNav(currentIndex: 0),
     );
