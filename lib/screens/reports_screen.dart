@@ -86,10 +86,10 @@ class ReportsScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(10),
               child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
+                spacing: 11,
+                runSpacing: 11,
                 children: const [
                   _BloodGroupChip(label: 'A+', count: '48'),
                   _BloodGroupChip(label: 'A-', count: '12'),
