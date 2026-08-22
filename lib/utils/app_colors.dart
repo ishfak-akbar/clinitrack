@@ -21,4 +21,7 @@ class AppColors {
 
   static const Color iconGray = Color(0xFF9AA5B1);
   static const Color shadowColor = Color(0x1A000000);
+
+  static const Color cardTintedWhite = Color(0xFFF7FBFA);
+  static const Color cardBorderTeal = Color(0xFFD3E6E4);
 }

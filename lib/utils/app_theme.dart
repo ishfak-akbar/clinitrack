@@ -93,11 +93,12 @@ class AppTheme {
       ),
 
       cardTheme: CardThemeData(
-        color: AppColors.cardWhite,
+        color: AppColors.cardTintedWhite,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.borderGray, width: 1),
+          side: const BorderSide(color: AppColors.cardBorderTeal, width: 1),
         ),
       ),
 

@@ -7,6 +7,7 @@ class DashboardStatCard extends StatelessWidget {
   final String value;
   final Color iconColor;
   final Color iconBackground;
+  final Color cardBackground;
 
   const DashboardStatCard({
     super.key,
@@ -15,6 +16,7 @@ class DashboardStatCard extends StatelessWidget {
     required this.value,
     this.iconColor = AppColors.primaryTeal,
     this.iconBackground = AppColors.primaryTealLight,
+    this.cardBackground = AppColors.cardTintedWhite,
   });
 
   @override
@@ -22,12 +24,13 @@ class DashboardStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.cardWhite,
+        color: cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderGray),
+        border: Border.all(color: AppColors.cardBorderTeal),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -35,9 +38,18 @@ class DashboardStatCard extends StatelessWidget {
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(height: 12),
-          Text(label, style: Theme.of(context).textTheme.bodySmall, maxLines: 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall,
+            maxLines: 2,
+          ),
           const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 22)),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 22),
+          ),
         ],
       ),
     );
