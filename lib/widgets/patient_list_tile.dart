@@ -21,19 +21,38 @@ class PatientListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
+      child: InkWell(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: AppColors.primaryTealLight,
-          child: Text(
-            name.isNotEmpty ? name.substring(0, 1) : '?',
-            style: const TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.w700),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                backgroundColor: AppColors.primaryTealLight,
+                child: Text(
+                  name.isNotEmpty ? name.substring(0, 1) : '?',
+                  style: const TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 2),
+                    Text('$age yrs, $gender', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('Last visit: $lastVisit', style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right, color: AppColors.iconGray),
+            ],
           ),
         ),
-        title: Text(name, style: Theme.of(context).textTheme.titleMedium),
-        subtitle: Text('$age yrs, $gender\nLast visit: $lastVisit'),
-        isThreeLine: true,
-        trailing: const Icon(Icons.chevron_right, color: AppColors.iconGray),
       ),
     );
   }

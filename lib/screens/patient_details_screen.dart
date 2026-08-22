@@ -27,6 +27,7 @@ class PatientDetailsScreen extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Cancel'),
           ),
+          const SizedBox(height: 7,),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
             onPressed: () => Navigator.of(context).pop(true),
