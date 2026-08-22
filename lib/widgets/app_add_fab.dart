@@ -13,3 +13,15 @@ class AppAddFab extends StatelessWidget {
     );
   }
 }
+
+class AppFabAboveNavLocation extends FloatingActionButtonLocation {
+  final double margin;
+
+  const AppFabAboveNavLocation({this.margin = 10});
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final Offset endFloatOffset = FloatingActionButtonLocation.endFloat.getOffset(scaffoldGeometry);
+    return Offset(endFloatOffset.dx, endFloatOffset.dy - margin);
+  }
+}

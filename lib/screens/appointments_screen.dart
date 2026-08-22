@@ -91,7 +91,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         ],
       ),
       floatingActionButton: const AppAddFab(routeName: '/add-appointment'),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: const AppFabAboveNavLocation(),
       bottomNavigationBar: const AppBottomNav(currentIndex: 2),
     );
   }

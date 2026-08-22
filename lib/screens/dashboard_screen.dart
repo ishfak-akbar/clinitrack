@@ -99,7 +99,7 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: const AppAddFab(routeName: '/add-appointment'),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: const AppFabAboveNavLocation(),
       bottomNavigationBar: const AppBottomNav(currentIndex: 0),
     );
   }

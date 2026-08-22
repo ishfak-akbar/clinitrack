@@ -81,7 +81,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
         ],
       ),
       floatingActionButton: const AppAddFab(routeName: '/add-patient'),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: const AppFabAboveNavLocation(),
       bottomNavigationBar: const AppBottomNav(currentIndex: 1),
     );
   }
