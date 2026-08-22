@@ -39,7 +39,10 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
+      backgroundColor: AppColors.screenTintedBackground,
       appBar: AppBar(
+        backgroundColor: AppColors.screenTintedBackground,
         automaticallyImplyLeading: false,
         title: const Text('More'),
       ),

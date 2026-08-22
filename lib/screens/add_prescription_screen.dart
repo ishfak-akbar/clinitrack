@@ -52,7 +52,9 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Prescription')),
+      extendBody: true,
+      backgroundColor: AppColors.screenTintedBackground,
+      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Prescription')),
       body: Form(
         key: _formKey,
         child: ListView(

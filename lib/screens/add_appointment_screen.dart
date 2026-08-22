@@ -88,7 +88,9 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Appointment')),
+      extendBody: true,
+      backgroundColor: AppColors.screenTintedBackground,
+      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Appointment')),
       body: Form(
         key: _formKey,
         child: ListView(

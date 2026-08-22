@@ -88,7 +88,9 @@ class _FollowUpScreenState extends State<FollowUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Follow-up')),
+      extendBody: true,
+      backgroundColor: AppColors.screenTintedBackground,
+      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Follow-up')),
       body: Form(
         key: _formKey,
         child: ListView(

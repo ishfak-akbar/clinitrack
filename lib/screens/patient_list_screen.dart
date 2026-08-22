@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/patient_list_tile.dart';
 import '../widgets/app_add_fab.dart';
+import '../utils/app_colors.dart';
 
 class PatientListScreen extends StatefulWidget {
   const PatientListScreen({super.key});
@@ -38,7 +39,10 @@ class _PatientListScreenState extends State<PatientListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
+      backgroundColor: AppColors.screenTintedBackground,
       appBar: AppBar(
+        backgroundColor: AppColors.screenTintedBackground,
         automaticallyImplyLeading: false,
         title: const Text('Patient List'),
       ),

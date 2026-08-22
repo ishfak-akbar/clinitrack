@@ -6,6 +6,7 @@ class AppColors {
   static const Color primaryTeal = Color(0xFF0E7C7B);
   static const Color primaryTealDark = Color(0xFF0A5F5E);
   static const Color primaryTealLight = Color(0xFFE6F4F3);
+  static const Color screenTintedBackground = Color(0xFFEAF4F3);
 
   static const Color textDark = Color(0xFF1B2B3A);
   static const Color textGray = Color(0xFF6B7280);

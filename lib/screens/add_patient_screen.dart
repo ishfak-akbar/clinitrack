@@ -55,7 +55,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Patient')),
+      extendBody: true,
+      backgroundColor: AppColors.screenTintedBackground,
+      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Add Patient')),
       body: Form(
         key: _formKey,
         child: ListView(
