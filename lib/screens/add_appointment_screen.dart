@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/app_colors.dart';
 import '../widgets/section_label.dart';
+import '../providers/appointment_provider.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   const AddAppointmentScreen({super.key});
@@ -11,6 +13,7 @@ class AddAppointmentScreen extends StatefulWidget {
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _patientNameController = TextEditingController();
   final _reasonController = TextEditingController();
 
   DateTime? _selectedDate;
@@ -22,6 +25,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   @override
   void dispose() {
+    _patientNameController.dispose();
     _reasonController.dispose();
     super.dispose();
   }
@@ -75,7 +79,19 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     }
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(seconds: 1));
+
+    final appointment = Appointment(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      patientName: _patientNameController.text.trim(),
+      date: _formatDate(_selectedDate!),
+      time: _formatTime(_selectedTime!),
+      reason: _reasonController.text.trim(),
+      doctor: _doctors[_selectedDoctorIndex],
+      status: 'scheduled',
+    );
+
+    await context.read<AppointmentProvider>().addAppointment(appointment);
+
     if (!mounted) return;
     setState(() => _isSaving = false);
 
@@ -90,12 +106,20 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return Scaffold(
       extendBody: true,
       backgroundColor: AppColors.screenTintedBackground,
-      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Appointment')),
+      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground, title: const Text('Appointment')),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            const SectionLabel('Patient Name'),
+            TextFormField(
+              controller: _patientNameController,
+              decoration: const InputDecoration(hintText: 'John Doe'),
+              validator: (value) => (value == null || value.trim().isEmpty) ? 'Patient name is required' : null,
+            ),
+            const SizedBox(height: 16),
+
             const SectionLabel('Select Date'),
             GestureDetector(
               onTap: _pickDate,

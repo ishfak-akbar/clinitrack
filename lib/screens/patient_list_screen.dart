@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/patient_list_tile.dart';
 import '../widgets/app_add_fab.dart';
 import '../utils/app_colors.dart';
+import '../providers/patient_provider.dart';
 
 class PatientListScreen extends StatefulWidget {
   const PatientListScreen({super.key});
@@ -15,29 +17,24 @@ class _PatientListScreenState extends State<PatientListScreen> {
   final _searchController = TextEditingController();
   String _query = '';
 
-  static const List<Map<String, String>> _patients = [
-    {'name': 'John Doe', 'age': '28', 'gender': 'Male', 'lastVisit': '18 May 2025'},
-    {'name': 'Emily Smith', 'age': '32', 'gender': 'Female', 'lastVisit': '17 May 2025'},
-    {'name': 'Michael Brown', 'age': '45', 'gender': 'Male', 'lastVisit': '15 May 2025'},
-    {'name': 'Sarah Johnson', 'age': '29', 'gender': 'Female', 'lastVisit': '14 May 2025'},
-    {'name': 'David Wilson', 'age': '50', 'gender': 'Male', 'lastVisit': '10 May 2025'},
-  ];
-
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-  List<Map<String, String>> get _filteredPatients {
-    if (_query.trim().isEmpty) return _patients;
-    return _patients
-        .where((p) => p['name']!.toLowerCase().contains(_query.toLowerCase()))
+  List<Patient> _filteredPatients(List<Patient> allPatients) {
+    if (_query.trim().isEmpty) return allPatients;
+    return allPatients
+        .where((p) => p.name.toLowerCase().contains(_query.toLowerCase()))
         .toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final allPatients = context.watch<PatientProvider>().patients;
+    final filtered = _filteredPatients(allPatients);
+
     return Scaffold(
       extendBody: true,
       backgroundColor: AppColors.screenTintedBackground,
@@ -60,7 +57,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
             ),
           ),
           Expanded(
-            child: _filteredPatients.isEmpty
+            child: filtered.isEmpty
                 ? Center(
               child: Text(
                 'No patients found',
@@ -69,14 +66,14 @@ class _PatientListScreenState extends State<PatientListScreen> {
             )
                 : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              itemCount: _filteredPatients.length,
+              itemCount: filtered.length,
               itemBuilder: (context, index) {
-                final patient = _filteredPatients[index];
+                final patient = filtered[index];
                 return PatientListTile(
-                  name: patient['name']!,
-                  age: patient['age']!,
-                  gender: patient['gender']!,
-                  lastVisit: patient['lastVisit']!,
+                  name: patient.name,
+                  age: patient.age,
+                  gender: patient.gender,
+                  lastVisit: patient.lastVisit,
                   onTap: () => Navigator.of(context).pushNamed('/patient-details'),
                 );
               },

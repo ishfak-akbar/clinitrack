@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/app_add_fab.dart';
 import '../widgets/appointment_list_tile.dart';
 import '../utils/app_colors.dart';
+import '../providers/appointment_provider.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -11,25 +13,15 @@ class AppointmentsScreen extends StatefulWidget {
   State<AppointmentsScreen> createState() => _AppointmentsScreenState();
 }
 
-class _AppointmentFilter { }
 enum FilterOption { all, scheduled, completed }
 
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   FilterOption _filter = FilterOption.all;
 
-  final List<Map<String, dynamic>> _appointments = [
-    {'name': 'John Doe', 'time': '09:00 AM', 'reason': 'General Checkup', 'status': AppointmentStatus.scheduled},
-    {'name': 'Emily Smith', 'time': '10:30 AM', 'reason': 'Fever & Cold', 'status': AppointmentStatus.scheduled},
-    {'name': 'Michael Brown', 'time': '12:00 PM', 'reason': 'Follow-up', 'status': AppointmentStatus.completed},
-    {'name': 'Sarah Johnson', 'time': '02:30 PM', 'reason': 'Consultation', 'status': AppointmentStatus.completed},
-  ];
-
-  List<Map<String, dynamic>> get _filteredAppointments {
-    if (_filter == FilterOption.all) return _appointments;
-    final targetStatus = _filter == FilterOption.scheduled
-        ? AppointmentStatus.scheduled
-        : AppointmentStatus.completed;
-    return _appointments.where((a) => a['status'] == targetStatus).toList();
+  List<Appointment> _filteredAppointments(List<Appointment> all) {
+    if (_filter == FilterOption.all) return all;
+    final targetStatus = _filter == FilterOption.scheduled ? 'scheduled' : 'completed';
+    return all.where((a) => a.status == targetStatus).toList();
   }
 
   Widget _filterChip(String label, FilterOption value) {
@@ -46,6 +38,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final allAppointments = context.watch<AppointmentProvider>().appointments;
+    final filtered = _filteredAppointments(allAppointments);
+
     return Scaffold(
       extendBody: true,
       backgroundColor: AppColors.screenTintedBackground,
@@ -67,7 +62,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             ),
           ),
           Expanded(
-            child: _filteredAppointments.isEmpty
+            child: filtered.isEmpty
                 ? Center(
               child: Text(
                 'No appointments found',
@@ -76,16 +71,21 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             )
                 : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              itemCount: _filteredAppointments.length,
+              itemCount: filtered.length,
               itemBuilder: (context, index) {
-                final appt = _filteredAppointments[index];
+                final appt = filtered[index];
                 return AppointmentListTile(
-                  patientName: appt['name'],
-                  time: appt['time'],
-                  reason: appt['reason'],
-                  status: appt['status'],
+                  patientName: appt.patientName,
+                  time: appt.time,
+                  reason: appt.reason,
+                  status: appt.status == 'completed'
+                      ? AppointmentStatus.completed
+                      : AppointmentStatus.scheduled,
                   onStatusChanged: (newStatus) {
-                    setState(() => appt['status'] = newStatus);
+                    context.read<AppointmentProvider>().updateStatus(
+                      appt.id,
+                      newStatus == AppointmentStatus.completed ? 'completed' : 'scheduled',
+                    );
                   },
                   onTap: () => Navigator.of(context).pushNamed('/patient-details'),
                 );

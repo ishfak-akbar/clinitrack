@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/section_label.dart';
+import 'package:provider/provider.dart';
+import '../providers/patient_provider.dart';
 
 enum Gender { male, female, other }
 enum BloodGroup { aPos, aNeg, bPos, bNeg, abPos, abNeg, oPos, oNeg }
@@ -43,11 +45,41 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(seconds: 1));
+
+    final genderLabel = switch (_gender) {
+      Gender.male => 'Male',
+      Gender.female => 'Female',
+      Gender.other => 'Other',
+    };
+    final bloodGroupLabel = switch (_bloodGroup) {
+      BloodGroup.aPos => 'A+',
+      BloodGroup.aNeg => 'A-',
+      BloodGroup.bPos => 'B+',
+      BloodGroup.bNeg => 'B-',
+      BloodGroup.abPos => 'AB+',
+      BloodGroup.abNeg => 'AB-',
+      BloodGroup.oPos => 'O+',
+      BloodGroup.oNeg => 'O-',
+    };
+
+    final patient = Patient(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameController.text.trim(),
+      age: _ageController.text.trim(),
+      gender: genderLabel,
+      contact: _contactController.text.trim(),
+      bloodGroup: bloodGroupLabel,
+      medicalHistory: _historyController.text.trim(),
+      allergies: _allergies.toList(),
+      lastVisit: 'Just added',
+    );
+
+    await context.read<PatientProvider>().addPatient(patient);
+
     if (!mounted) return;
     setState(() => _isSaving = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${_nameController.text} saved successfully')),
+      SnackBar(content: Text('${patient.name} saved successfully')),
     );
     Navigator.of(context).pop();
   }
