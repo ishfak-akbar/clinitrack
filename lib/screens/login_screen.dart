@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -47,7 +49,18 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
+
+    final roleLabel = switch (_selectedRole) {
+      LoginRole.doctor => 'Doctor',
+      LoginRole.nurse => 'Nurse',
+      LoginRole.admin => 'Admin',
+    };
+
+    await context.read<AuthProvider>().login(
+      email: _emailController.text.trim(),
+      role: roleLabel,
+    );
+
     if (!mounted) return;
     setState(() => _isLoading = false);
 

@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/app_colors.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/more_menu_tile.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _darkMode = false;
-  bool _appointmentReminder = true;
 
   Widget _sectionHeader(BuildContext context, String title) {
     return Padding(
@@ -25,6 +19,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+
     return Scaffold(
       extendBody: true,
       backgroundColor: AppColors.screenTintedBackground,
@@ -35,10 +31,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _sectionHeader(context, 'APPEARANCE'),
           Card(
             child: SwitchListTile(
-              value: _darkMode,
+              value: settings.darkMode,
               secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primaryTeal),
               title: const Text('Dark Mode'),
-              onChanged: (value) => setState(() => _darkMode = value),
+              onChanged: (value) => context.read<SettingsProvider>().setDarkMode(value),
             ),
           ),
           const SizedBox(height: 20),
@@ -46,10 +42,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _sectionHeader(context, 'NOTIFICATIONS'),
           Card(
             child: SwitchListTile(
-              value: _appointmentReminder,
+              value: settings.appointmentReminder,
               secondary: const Icon(Icons.notifications_outlined, color: AppColors.primaryTeal),
               title: const Text('Appointment Reminder'),
-              onChanged: (value) => setState(() => _appointmentReminder = value),
+              onChanged: (value) => context.read<SettingsProvider>().setAppointmentReminder(value),
             ),
           ),
           const SizedBox(height: 20),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/more_menu_tile.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -33,6 +35,8 @@ class MoreScreen extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
+      await context.read<AuthProvider>().logout();
+      if (!context.mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }

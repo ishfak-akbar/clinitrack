@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/app_colors.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,13 +15,23 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToLogin();
+    _checkSessionAndNavigate();
   }
 
-  Future<void> _navigateToLogin() async {
-    await Future.delayed(const Duration(seconds: 2));
+  Future<void> _checkSessionAndNavigate() async {
+    final authProvider = context.read<AuthProvider>();
+    final settingsProvider = context.read<SettingsProvider>();
+
+    await Future.wait([
+      authProvider.loadSession(),
+      settingsProvider.loadSettings(),
+      Future.delayed(const Duration(seconds: 2)),
+    ]);
+
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/login');
+    Navigator.of(context).pushReplacementNamed(
+      authProvider.isLoggedIn ? '/dashboard' : '/login',
+    );
   }
 
   @override

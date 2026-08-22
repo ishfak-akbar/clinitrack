@@ -1,4 +1,7 @@
+import 'providers/auth_provider.dart';
+import 'providers/settings_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_colors.dart';
 import 'screens/splash_screen.dart';
@@ -17,7 +20,15 @@ import 'screens/settings_screen.dart';
 import 'screens/profile_screen.dart';
 
 void main() {
-  runApp(const CliniTrackApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+      ],
+      child: const CliniTrackApp(),
+    ),
+  );
 }
 
 class CliniTrackApp extends StatelessWidget {
@@ -45,42 +56,7 @@ class CliniTrackApp extends StatelessWidget {
         '/settings': (context) => const SettingsScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/patient-details': (context) => const PatientDetailsScreen(),
-
       },
-    );
-  }
-}
-
-class _DefaultPlaceholder extends StatelessWidget {
-  final String title;
-  const _DefaultPlaceholder({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryTealLight,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.construction_rounded, size: 48, color: AppColors.primaryTeal),
-              ),
-              const SizedBox(height: 20),
-              Text('$title — Coming Soon', textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text('This screen is under construction.', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
