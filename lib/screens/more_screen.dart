@@ -62,7 +62,7 @@ class MoreScreen extends StatelessWidget {
                 backgroundColor: AppColors.primaryTealLight,
                 child: Icon(Icons.person, color: AppColors.primaryTeal, size: 28),
               ),
-              title: Text('Dr. Sarah Ahmed', style: Theme.of(context).textTheme.titleMedium),
+              title: Text('Dr. Ishfak Akbar', style: Theme.of(context).textTheme.titleMedium),
               subtitle: const Text('General Physician'),
               trailing: const Icon(Icons.chevron_right, color: AppColors.iconGray),
             ),

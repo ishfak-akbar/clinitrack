@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
+import '../utils/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,14 +11,11 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-enum LoginRole { doctor, nurse, admin }
-
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  LoginRole _selectedRole = LoginRole.doctor;
   bool _obscurePassword = true;
   bool _isLoading = false;
 
@@ -28,176 +26,324 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Email or phone is required';
-    }
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password is required';
-    }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-    return null;
-  }
-
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    final roleLabel = switch (_selectedRole) {
-      LoginRole.doctor => 'Doctor',
-      LoginRole.nurse => 'Nurse',
-      LoginRole.admin => 'Admin',
-    };
-
     await context.read<AuthProvider>().login(
       email: _emailController.text.trim(),
-      role: roleLabel,
+      role: 'Doctor',
     );
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
+    setState(() => _isLoading = false);
     Navigator.of(context).pushReplacementNamed('/dashboard');
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
+
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                Row(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+              AppColors.darkBackground,
+              AppColors.darkSurface,
+              AppColors.darkCard.withValues(alpha: 0.9),
+            ]
+                : [
+              const Color(0xFFE8F5F4),
+              AppColors.screenTintedBackground,
+              const Color(0xFFD6EFEC),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Welcome Back', style: Theme.of(context).textTheme.headlineMedium),
-                    const SizedBox(width: 6),
-                    const Text('👋', style: TextStyle(fontSize: 24)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Sign in to continue',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textGray),
-                ),
-                const SizedBox(height: 32),
-
-                // ---------- Email / Phone ----------
-                Text('Email / Phone', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: 'doctor@example.com'),
-                  validator: _validateEmail,
-                ),
-                const SizedBox(height: 20),
-
-                // ---------- Password ----------
-                Text('Password', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    hintText: '••••••••••••',
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: AppColors.iconGray,
-                      ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  validator: _validatePassword,
-                ),
-                const SizedBox(height: 8),
-
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Password reset link sent')),
-                      );
-                    },
-                    child: const Text('Forgot Password?'),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // ---------- Login as ----------
-                Text('Login as', style: Theme.of(context).textTheme.titleMedium),
-                RadioListTile<LoginRole>(
-                  value: LoginRole.doctor,
-                  groupValue: _selectedRole,
-                  title: const Text('Doctor'),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (value) => setState(() => _selectedRole = value!),
-                ),
-                RadioListTile<LoginRole>(
-                  value: LoginRole.nurse,
-                  groupValue: _selectedRole,
-                  title: const Text('Nurse'),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (value) => setState(() => _selectedRole = value!),
-                ),
-                RadioListTile<LoginRole>(
-                  value: LoginRole.admin,
-                  groupValue: _selectedRole,
-                  title: const Text('Admin'),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (value) => setState(() => _selectedRole = value!),
-                ),
-                const SizedBox(height: 20),
-
-                // ---------- Login button ----------
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  child: _isLoading
-                      ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.cardWhite),
-                  )
-                      : const Text('Login'),
-                ),
-                const SizedBox(height: 20),
-
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sign up coming soon')),
-                      );
-                    },
-                    child: RichText(
-                      text: TextSpan(
-                        text: "Don't have an account? ",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        children: const [
-                          TextSpan(
-                            text: 'Sign up',
-                            style: TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.w600),
+                    // ---------- Logo ----------
+                    Container(
+                      width: 75,
+                      height: 75,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.35),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
+                      padding: const EdgeInsets.all(8),
+                      child: Image.asset(
+                        'assets/cliniTrackIcon.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.local_hospital_rounded,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+
+                    Text(
+                      'CliniTrack',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.4,
+                        fontSize: 28,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Clinic Assistant',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: accent,
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // ---------- Card ----------
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.darkCard : Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : accent.withValues(alpha: 0.18),
+                        ),
+                        boxShadow: isDark
+                            ? []
+                            : [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.08),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'Welcome Back',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 24,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Sign in to access your clinic workspace',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: 14,
+                              ),
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            // Email
+                            TextFormField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                labelText: 'Email or phone',
+                                labelStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.textGray,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.person_outline_rounded,
+                                  color: accent,
+                                  size: 22,
+                                ),
+                                filled: true,
+                                fillColor: isDark
+                                    ? AppColors.darkSurface
+                                    : const Color(0xFFF7FBFA),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Email or phone is required';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Password
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => _handleLogin(),
+                              style: const TextStyle(fontSize: 15),
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                labelStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.textGray,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.lock_outline_rounded,
+                                  color: accent,
+                                  size: 22,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 20,
+                                    color: isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.iconGray,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                                filled: true,
+                                fillColor: isDark
+                                    ? AppColors.darkSurface
+                                    : const Color(0xFFF7FBFA),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Password is required';
+                                }
+                                if (value.length < 6) {
+                                  return 'Password must be at least 6 characters';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {},
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 2),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'Forgot password?',
+                                  style: TextStyle(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: accent,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Sign In button
+                            SizedBox(
+                              height: 52,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: accent,
+                                  foregroundColor: isDark
+                                      ? AppColors.darkBackground
+                                      : Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: isDark
+                                        ? AppColors.darkBackground
+                                        : Colors.white,
+                                  ),
+                                )
+                                    : const Text(
+                                  'Sign In',
+                                  style: TextStyle(
+                                    fontSize: 16.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Footer
+                    Text(
+                      "Don't have an account? ",
+                      style: theme.textTheme.bodyMedium?.copyWith(fontSize: 14),
+                    ),
+                    const SizedBox(height: 2),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Text(
+                        'Create an account',
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: accent,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-              ],
+              ),
             ),
           ),
         ),

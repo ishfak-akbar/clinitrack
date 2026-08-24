@@ -44,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
                   child: Icon(Icons.person, size: 52, color: AppColors.primaryTeal),
                 ),
                 const SizedBox(height: 14),
-                Text('Dr. Sarah Ahmed', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 20)),
+                Text('Dr. Ishfak Akbar', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 20)),
                 const SizedBox(height: 2),
                 Text('General Physician', style: Theme.of(context).textTheme.bodyMedium),
               ],
@@ -59,7 +59,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   _infoTile(context, icon: Icons.badge_outlined, label: 'License Number', value: 'MBBS-214578'),
                   const Divider(),
-                  _infoTile(context, icon: Icons.email_outlined, label: 'Email', value: 'sarah.ahmed@clinic.com'),
+                  _infoTile(context, icon: Icons.email_outlined, label: 'Email', value: 'ishfak.akbar@clinic.com'),
                   const Divider(),
                   _infoTile(context, icon: Icons.phone_outlined, label: 'Phone', value: '01912345678'),
                 ],
