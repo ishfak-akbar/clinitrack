@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
 import '../widgets/section_label.dart';
 import '../widgets/form_section_card.dart';
 import '../widgets/themed_choice_chip.dart';
 import '../widgets/sticky_save_button.dart';
+import 'package:provider/provider.dart';
+import '../providers/prescription_provider.dart';
+import '../providers/patient_provider.dart';
 
 enum PrescriptionFrequency { daily, twiceADay, weekly }
 
@@ -16,7 +18,8 @@ class AddPrescriptionScreen extends StatefulWidget {
 
 class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _patientController = TextEditingController(text: 'Nahian');
+  final _patientController = TextEditingController();
+  Patient? _patient;
   final _medicineController = TextEditingController();
   final _dosageController = TextEditingController();
   final _durationController = TextEditingController();
@@ -35,6 +38,18 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_patient == null) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Patient) {
+        _patient = args;
+        _patientController.text = args.name;
+      }
+    }
+  }
+
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) return 'This field is required';
     return null;
@@ -42,9 +57,32 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
 
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_patient == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No patient selected'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
-    await Future.delayed(const Duration(seconds: 1)); // simulate save
+    final frequencyLabel = switch (_frequency) {
+      PrescriptionFrequency.daily => 'Daily',
+      PrescriptionFrequency.twiceADay => 'Twice a day',
+      PrescriptionFrequency.weekly => 'Weekly',
+    };
+
+    final prescription = Prescription(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      patientId: _patient!.id,
+      medicineName: _medicineController.text.trim(),
+      dosage: _dosageController.text.trim(),
+      duration: _durationController.text.trim(),
+      frequency: frequencyLabel,
+      notes: _notesController.text.trim(),
+    );
+
+    await context.read<PrescriptionProvider>().addPrescription(prescription);
 
     if (!mounted) return;
     setState(() => _isSaving = false);
@@ -70,7 +108,7 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
         body: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
               // ---------- Patient ----------
               FormSectionCard(

@@ -19,6 +19,7 @@ import 'screens/more_screen.dart';
 import 'screens/reports_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/profile_screen.dart';
+import 'providers/prescription_provider.dart';
 
 void main() {
   runApp(
@@ -28,6 +29,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => PatientProvider()),
         ChangeNotifierProvider(create: (_) => AppointmentProvider()),
+        ChangeNotifierProvider(create: (_) => PrescriptionProvider()),
       ],
       child: const CliniTrackApp(),
     ),

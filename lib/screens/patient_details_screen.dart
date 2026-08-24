@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/expandable_record_section.dart';
 import '../providers/patient_provider.dart';
+import 'package:provider/provider.dart';
+import '../providers/prescription_provider.dart';
 
 class PatientDetailsScreen extends StatelessWidget {
   const PatientDetailsScreen({super.key});
@@ -140,29 +142,42 @@ class PatientDetailsScreen extends StatelessWidget {
           // ---------- Allergies ----------
           Text('Allergies', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: patient.allergies.isEmpty
-                  ? Text('No known allergies.', style: Theme.of(context).textTheme.bodyLarge)
-                  : Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: patient.allergies
-                    .map((a) => Chip(
-                  label: Text(a, style: const TextStyle(fontSize: 13)),
-                  backgroundColor: AppColors.primaryTealLight,
-                ))
-                    .toList(),
+          Builder(builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: patient.allergies.isEmpty
+                    ? Text('No known allergies.', style: Theme.of(context).textTheme.bodyLarge)
+                    : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: patient.allergies
+                      .map((a) => Chip(
+                    label: Text(a, style: TextStyle(fontSize: 13, color: accent)),
+                    backgroundColor: accent.withValues(alpha: isDark ? 0.15 : 0.10),
+                    side: BorderSide(color: accent.withValues(alpha: isDark ? 0.35 : 0.22)),
+                  ))
+                      .toList(),
+                ),
               ),
-            ),
-          ),
+            );
+          }),
           const SizedBox(height: 16),
 
           // ---------- Expandable sections ----------
-          const ExpandableRecordSection(
-            title: 'Prescriptions',
-            items: [],
+          Consumer<PrescriptionProvider>(
+            builder: (context, prescriptionProvider, _) {
+              final items = prescriptionProvider
+                  .forPatient(patient.id)
+                  .map((p) => p.summary)
+                  .toList();
+              return ExpandableRecordSection(
+                title: 'Prescriptions',
+                items: items,
+              );
+            },
           ),
           const ExpandableRecordSection(
             title: 'Visit History',
