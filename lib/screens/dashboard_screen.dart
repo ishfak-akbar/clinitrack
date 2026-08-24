@@ -5,6 +5,7 @@ import '../widgets/app_bottom_nav.dart';
 import '../widgets/dashboard_stat_card.dart';
 import '../widgets/app_add_fab.dart';
 import '../providers/appointment_provider.dart';
+import '../providers/patient_provider.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -118,7 +119,15 @@ class _AppointmentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () => Navigator.of(context).pushNamed('/patient-details'),
+      onTap: () {
+        final matchingPatient = context.read<PatientProvider>().patients.where(
+              (p) => p.name.toLowerCase() == appointment.patientName.toLowerCase(),
+        );
+        Navigator.of(context).pushNamed(
+          '/patient-details',
+          arguments: matchingPatient.isNotEmpty ? matchingPatient.first : null,
+        );
+      },
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
         backgroundColor: AppColors.primaryTealLight,

@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/app_add_fab.dart';
 import '../widgets/appointment_list_tile.dart';
-import '../utils/app_colors.dart';
 import '../providers/appointment_provider.dart';
+import '../providers/patient_provider.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -85,7 +85,15 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       newStatus == AppointmentStatus.completed ? 'completed' : 'scheduled',
                     );
                   },
-                  onTap: () => Navigator.of(context).pushNamed('/patient-details'),
+                  onTap: () {
+                    final matchingPatient = context.read<PatientProvider>().patients.where(
+                          (p) => p.name.toLowerCase() == appt.patientName.toLowerCase(),
+                    );
+                    Navigator.of(context).pushNamed(
+                      '/patient-details',
+                      arguments: matchingPatient.isNotEmpty ? matchingPatient.first : null,
+                    );
+                  },
                 );
               },
             ),

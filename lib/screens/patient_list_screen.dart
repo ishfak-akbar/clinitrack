@@ -72,7 +72,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
                   age: patient.age,
                   gender: patient.gender,
                   lastVisit: patient.lastVisit,
-                  onTap: () => Navigator.of(context).pushNamed('/patient-details'),
+                  onTap: () => Navigator.of(context).pushNamed('/patient-details', arguments: patient),
                 );
               },
             ),
