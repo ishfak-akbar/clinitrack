@@ -6,6 +6,7 @@ import '../providers/settings_provider.dart';
 import '../providers/patient_provider.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/prescription_provider.dart';
+import '../providers/medicine_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,6 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
       patientProvider.loadPatients(),
       appointmentProvider.loadAppointments(),
       prescriptionProvider.loadPrescriptions(),
+      context.read<MedicineProvider>().loadMedicines(),
       Future.delayed(const Duration(seconds: 2)),
     ]);
 
@@ -47,7 +49,6 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
     return Scaffold(
       body: Container(
         width: double.infinity,

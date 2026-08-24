@@ -83,6 +83,13 @@ class MoreScreen extends StatelessWidget {
                   ),
                   const Divider(),
                   MoreMenuTile(
+                    icon: Icons.medication_outlined,
+                    title: 'Medicine Inventory',
+                    subtitle: 'View stock & order medicines',
+                    onTap: () => Navigator.of(context).pushNamed('/medicine-list'),
+                  ),
+                  const Divider(),
+                  MoreMenuTile(
                     icon: Icons.settings_outlined,
                     title: 'Settings',
                     subtitle: 'Appearance, notifications & more',

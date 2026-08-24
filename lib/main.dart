@@ -2,6 +2,8 @@ import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/patient_provider.dart';
 import 'providers/appointment_provider.dart';
+import 'providers/prescription_provider.dart';
+import 'providers/medicine_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'utils/app_theme.dart';
@@ -19,7 +21,8 @@ import 'screens/more_screen.dart';
 import 'screens/reports_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/profile_screen.dart';
-import 'providers/prescription_provider.dart';
+import 'screens/medicine_list_screen.dart';
+import 'screens/order_medicine_screen.dart';
 
 void main() {
   runApp(
@@ -30,6 +33,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => PatientProvider()),
         ChangeNotifierProvider(create: (_) => AppointmentProvider()),
         ChangeNotifierProvider(create: (_) => PrescriptionProvider()),
+        ChangeNotifierProvider(create: (_) => MedicineProvider()),
       ],
       child: const CliniTrackApp(),
     ),
@@ -65,6 +69,8 @@ class CliniTrackApp extends StatelessWidget {
         '/settings': (context) => const SettingsScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/patient-details': (context) => const PatientDetailsScreen(),
+        '/medicine-list': (context) => const MedicineListScreen(),
+        '/order-medicine': (context) => const OrderMedicineScreen(),
       },
     );
   }
