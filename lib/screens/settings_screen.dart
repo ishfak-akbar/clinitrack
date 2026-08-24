@@ -23,8 +23,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.screenTintedBackground,
-      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Settings')),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

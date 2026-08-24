@@ -9,8 +9,7 @@ class ReportsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.screenTintedBackground,
-      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Reports')),
+      appBar: AppBar(title: const Text('Reports')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

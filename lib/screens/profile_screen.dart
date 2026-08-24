@@ -31,8 +31,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.screenTintedBackground,
-      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Profile')),
+      appBar: AppBar(title: const Text('Profile')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/section_label.dart';
+import '../widgets/form_section_card.dart';
+import '../widgets/themed_choice_chip.dart';
+import '../widgets/sticky_save_button.dart';
 
 enum PrescriptionFrequency { daily, twiceADay, weekly }
 
@@ -60,9 +63,7 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.screenTintedBackground,
         appBar: AppBar(
-          backgroundColor: AppColors.screenTintedBackground,
           elevation: 0,
           title: const Text('Add Prescription'),
         ),
@@ -72,17 +73,15 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             children: [
               // ---------- Patient ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Patient', icon: Icons.person_outline),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _patientController,
                     readOnly: true,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.person_outline),
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.person_outline),
                     ),
                   ),
                 ],
@@ -91,7 +90,7 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
               const SizedBox(height: 16),
 
               // ---------- Medicine Info ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Medicine Details', icon: Icons.medication_outlined),
                   const SizedBox(height: 12),
@@ -139,7 +138,7 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
               const SizedBox(height: 16),
 
               // ---------- Frequency ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Frequency', icon: Icons.repeat),
                   const SizedBox(height: 12),
@@ -147,9 +146,21 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _buildFrequencyChip('Daily', PrescriptionFrequency.daily),
-                      _buildFrequencyChip('Twice a day', PrescriptionFrequency.twiceADay),
-                      _buildFrequencyChip('Weekly', PrescriptionFrequency.weekly),
+                      ThemedChoiceChip(
+                        label: 'Daily',
+                        isSelected: _frequency == PrescriptionFrequency.daily,
+                        onSelected: () => setState(() => _frequency = PrescriptionFrequency.daily),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'Twice a day',
+                        isSelected: _frequency == PrescriptionFrequency.twiceADay,
+                        onSelected: () => setState(() => _frequency = PrescriptionFrequency.twiceADay),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'Weekly',
+                        isSelected: _frequency == PrescriptionFrequency.weekly,
+                        onSelected: () => setState(() => _frequency = PrescriptionFrequency.weekly),
+                      ),
                     ],
                   ),
                 ],
@@ -158,7 +169,7 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
               const SizedBox(height: 16),
 
               // ---------- Notes ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Notes', icon: Icons.notes_outlined),
                   const SizedBox(height: 8),
@@ -177,73 +188,11 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
         ),
 
         // ---------- Sticky Save Button ----------
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _handleSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isSaving
-                    ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
-                )
-                    : const Text(
-                  'Save Prescription',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ),
+        bottomNavigationBar: StickySaveButton(
+          isSaving: _isSaving,
+          onPressed: _handleSave,
+          label: 'Save Prescription',
         ),
-      ),
-    );
-  }
-
-  // ---------- Helpers ----------
-
-  Widget _buildCard({required List<Widget> children}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
-    );
-  }
-
-  Widget _buildFrequencyChip(String label, PrescriptionFrequency value) {
-    final isSelected = _frequency == value;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => setState(() => _frequency = value),
-      selectedColor: AppColors.primaryTeal.withOpacity(0.15),
-      labelStyle: TextStyle(
-        color: isSelected ? AppColors.primaryTeal : Colors.black87,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
     );
   }

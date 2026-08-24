@@ -48,7 +48,10 @@ class DashboardStatCard extends StatelessWidget {
           Text(
             value,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 22),
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontSize: 22,
+              color: AppColors.textDark,
+            ),
           ),
         ],
       ),

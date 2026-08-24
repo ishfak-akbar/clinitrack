@@ -43,9 +43,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.screenTintedBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.screenTintedBackground,
         automaticallyImplyLeading: false,
         title: const Text('Appointments'),
       ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/app_colors.dart';
 import '../widgets/section_label.dart';
+import '../widgets/form_section_card.dart';
+import '../widgets/sticky_save_button.dart';
 import '../providers/appointment_provider.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
@@ -115,9 +117,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.screenTintedBackground,
         appBar: AppBar(
-          backgroundColor: AppColors.screenTintedBackground,
           elevation: 0,
           title: const Text('Add Appointment'),
         ),
@@ -127,7 +127,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             children: [
               // ---------- Patient & Reason ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Patient Name', icon: Icons.person_outline),
                   const SizedBox(height: 8),
@@ -160,7 +160,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               const SizedBox(height: 16),
 
               // ---------- Date & Time ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Date & Time', icon: Icons.calendar_month_outlined),
                   const SizedBox(height: 12),
@@ -191,13 +191,16 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               const SizedBox(height: 16),
 
               // ---------- Select Doctor ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Select Doctor', icon: Icons.medical_services_outlined),
                   const SizedBox(height: 12),
                   Column(
                     children: List.generate(_doctors.length, (index) {
                       final isSelected = _selectedDoctorIndex == index;
+                      final theme = Theme.of(context);
+                      final isDark = theme.brightness == Brightness.dark;
+                      final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: InkWell(
@@ -206,10 +209,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primaryTeal.withOpacity(0.08) : Colors.grey.shade50,
+                              color: isSelected
+                                  ? accent.withValues(alpha: 0.08)
+                                  : (isDark ? AppColors.darkCard : Colors.grey.shade50),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected ? AppColors.primaryTeal : Colors.grey.shade300,
+                                color: isSelected ? accent : (isDark ? AppColors.darkBorder : Colors.grey.shade300),
                                 width: isSelected ? 1.5 : 1,
                               ),
                             ),
@@ -217,11 +222,14 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                               children: [
                                 CircleAvatar(
                                   radius: 18,
-                                  backgroundColor: isSelected ? AppColors.primaryTeal : Colors.grey.shade300,
+                                  backgroundColor:
+                                  isSelected ? accent : (isDark ? AppColors.darkBorder : Colors.grey.shade300),
                                   child: Text(
                                     _doctors[index].split(' ').last[0],
                                     style: TextStyle(
-                                      color: isSelected ? Colors.white : Colors.black54,
+                                      color: isSelected
+                                          ? (isDark ? AppColors.darkBackground : Colors.white)
+                                          : theme.textTheme.bodyMedium?.color,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -233,12 +241,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                      color: isSelected ? AppColors.primaryTeal : Colors.black87,
+                                      color: isSelected ? accent : theme.textTheme.bodyLarge?.color,
                                     ),
                                   ),
                                 ),
                                 if (isSelected)
-                                  const Icon(Icons.check_circle, color: AppColors.primaryTeal, size: 22),
+                                  Icon(Icons.check_circle, color: accent, size: 22),
                               ],
                             ),
                           ),
@@ -253,34 +261,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         ),
 
         // ---------- Sticky Save Button ----------
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _handleSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isSaving
-                    ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
-                )
-                    : const Text(
-                  'Schedule Appointment',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ),
+        bottomNavigationBar: StickySaveButton(
+          isSaving: _isSaving,
+          onPressed: _handleSave,
+          label: 'Schedule Appointment',
         ),
       ),
     );
@@ -288,34 +272,15 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   // ---------- Helper Widgets ----------
 
-  Widget _buildCard({required List<Widget> children}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
-    );
-  }
-
   Widget _buildPickerField({
     required String label,
     required IconData icon,
     required VoidCallback onTap,
     required bool isSelected,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -323,21 +288,23 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? AppColors.primaryTeal : Colors.grey.shade300,
+            color: isSelected ? accent : (isDark ? AppColors.darkBorder : Colors.grey.shade300),
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? AppColors.primaryTeal.withOpacity(0.05) : Colors.grey.shade50,
+          color: isSelected
+              ? accent.withValues(alpha: 0.08)
+              : (isDark ? AppColors.darkCard : Colors.grey.shade50),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: isSelected ? AppColors.primaryTeal : Colors.grey),
+            Icon(icon, size: 20, color: isSelected ? accent : theme.textTheme.bodySmall?.color),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  color: isSelected ? AppColors.primaryTeal : Colors.grey.shade600,
+                  color: isSelected ? accent : theme.textTheme.bodyMedium?.color,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),

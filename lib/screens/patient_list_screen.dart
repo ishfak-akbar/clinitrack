@@ -37,9 +37,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.screenTintedBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.screenTintedBackground,
         automaticallyImplyLeading: false,
         title: const Text('Patient List'),
       ),

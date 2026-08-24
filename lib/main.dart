@@ -39,10 +39,14 @@ class CliniTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final darkMode = context.watch<SettingsProvider>().darkMode;
+
     return MaterialApp(
       title: 'CliniTrack',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),

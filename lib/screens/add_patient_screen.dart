@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../utils/app_colors.dart';
 import '../providers/patient_provider.dart';
 import '../widgets/section_label.dart';
+import '../widgets/form_section_card.dart';
+import '../widgets/themed_choice_chip.dart';
+import '../widgets/sticky_save_button.dart';
 
 enum Gender { male, female, other }
 enum BloodGroup { aPos, aNeg, bPos, bNeg, abPos, abNeg, oPos, oNeg }
@@ -94,9 +97,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.screenTintedBackground,
         appBar: AppBar(
-          backgroundColor: AppColors.screenTintedBackground,
           elevation: 0,
           title: const Text('Add Patient'),
         ),
@@ -106,7 +107,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             children: [
               // ---------- Basic Info Card ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Basic Information', icon: Icons.person_outline),
                   const SizedBox(height: 8),
@@ -153,20 +154,32 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                   ),
                 ],
               ),
-      
+
               const SizedBox(height: 16),
-      
+
               // ---------- Gender & Blood Group ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Gender', icon: Icons.wc_outlined),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     children: [
-                      _buildChoiceChip('Male', Gender.male, _gender, (v) => setState(() => _gender = v)),
-                      _buildChoiceChip('Female', Gender.female, _gender, (v) => setState(() => _gender = v)),
-                      _buildChoiceChip('Other', Gender.other, _gender, (v) => setState(() => _gender = v)),
+                      ThemedChoiceChip(
+                        label: 'Male',
+                        isSelected: _gender == Gender.male,
+                        onSelected: () => setState(() => _gender = Gender.male),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'Female',
+                        isSelected: _gender == Gender.female,
+                        onSelected: () => setState(() => _gender = Gender.female),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'Other',
+                        isSelected: _gender == Gender.other,
+                        onSelected: () => setState(() => _gender = Gender.other),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -176,23 +189,55 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _buildBloodChip('A+', BloodGroup.aPos),
-                      _buildBloodChip('A-', BloodGroup.aNeg),
-                      _buildBloodChip('B+', BloodGroup.bPos),
-                      _buildBloodChip('B-', BloodGroup.bNeg),
-                      _buildBloodChip('O+', BloodGroup.oPos),
-                      _buildBloodChip('O-', BloodGroup.oNeg),
-                      _buildBloodChip('AB+', BloodGroup.abPos),
-                      _buildBloodChip('AB-', BloodGroup.abNeg),
+                      ThemedChoiceChip(
+                        label: 'A+',
+                        isSelected: _bloodGroup == BloodGroup.aPos,
+                        onSelected: () => setState(() => _bloodGroup = BloodGroup.aPos),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'A-',
+                        isSelected: _bloodGroup == BloodGroup.aNeg,
+                        onSelected: () => setState(() => _bloodGroup = BloodGroup.aNeg),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'B+',
+                        isSelected: _bloodGroup == BloodGroup.bPos,
+                        onSelected: () => setState(() => _bloodGroup = BloodGroup.bPos),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'B-',
+                        isSelected: _bloodGroup == BloodGroup.bNeg,
+                        onSelected: () => setState(() => _bloodGroup = BloodGroup.bNeg),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'O+',
+                        isSelected: _bloodGroup == BloodGroup.oPos,
+                        onSelected: () => setState(() => _bloodGroup = BloodGroup.oPos),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'O-',
+                        isSelected: _bloodGroup == BloodGroup.oNeg,
+                        onSelected: () => setState(() => _bloodGroup = BloodGroup.oNeg),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'AB+',
+                        isSelected: _bloodGroup == BloodGroup.abPos,
+                        onSelected: () => setState(() => _bloodGroup = BloodGroup.abPos),
+                      ),
+                      ThemedChoiceChip(
+                        label: 'AB-',
+                        isSelected: _bloodGroup == BloodGroup.abNeg,
+                        onSelected: () => setState(() => _bloodGroup = BloodGroup.abNeg),
+                      ),
                     ],
                   ),
                 ],
               ),
-      
+
               const SizedBox(height: 16),
-      
+
               // ---------- Medical History ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Medical History', icon: Icons.medical_information_outlined),
                   const SizedBox(height: 8),
@@ -206,42 +251,47 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                   ),
                 ],
               ),
-      
+
               const SizedBox(height: 16),
-              
+
               // ---------- Allergies ----------
-              _buildCard(
+              FormSectionCard(
                 children: [
                   const SectionLabel('Allergies', icon: Icons.warning_amber_rounded),
                   const SizedBox(height: 8),
-      
-                  // Clean dropdown button
-                  InkWell(
-                    onTap: _showAllergiesPicker,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.grey.shade50,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                          const SizedBox(width: 8),
-                          Text(
-                            _allergies.isEmpty ? 'Select allergies' : '${_allergies.length} selected',
-                            style: TextStyle(
-                              color: _allergies.isEmpty ? Colors.grey : Colors.black87,
-                              fontSize: 15,
+
+                  Builder(builder: (context) {
+                    final theme = Theme.of(context);
+                    final isDark = theme.brightness == Brightness.dark;
+                    return InkWell(
+                      onTap: _showAllergiesPicker,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: isDark ? AppColors.darkBorder : Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(12),
+                          color: isDark ? AppColors.darkCard : Colors.grey.shade50,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.arrow_drop_down, color: theme.textTheme.bodySmall?.color),
+                            const SizedBox(width: 8),
+                            Text(
+                              _allergies.isEmpty ? 'Select allergies' : '${_allergies.length} selected',
+                              style: TextStyle(
+                                color: _allergies.isEmpty
+                                    ? theme.textTheme.bodySmall?.color
+                                    : theme.textTheme.bodyLarge?.color,
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
 
                   if (_allergies.isNotEmpty) ...[
                     const SizedBox(height: 12),
@@ -249,9 +299,12 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: _allergies.map((allergy) {
+                        final accent = Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.primaryTealAccent
+                            : AppColors.primaryTeal;
                         return Chip(
                           label: Text(allergy, style: const TextStyle(fontSize: 13)),
-                          backgroundColor: AppColors.primaryTeal.withOpacity(0.12),
+                          backgroundColor: accent.withValues(alpha: 0.12),
                           deleteIcon: const Icon(Icons.close, size: 16),
                           onDeleted: () {
                             setState(() => _allergies.remove(allergy));
@@ -266,97 +319,26 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             ],
           ),
         ),
-      
+
         // ---------- Sticky Save Button ----------
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: SizedBox(
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _handleSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isSaving
-                    ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
-                )
-                    : const Text(
-                  'Save Patient',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ),
+        bottomNavigationBar: StickySaveButton(
+          isSaving: _isSaving,
+          onPressed: _handleSave,
+          label: 'Save Patient',
         ),
       ),
     );
   }
 
-  // ---------- Helper Widgets ----------
-
-  Widget _buildCard({required List<Widget> children}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
-    );
-  }
-
-  Widget _buildChoiceChip<T>(String label, T value, T groupValue, ValueChanged<T> onSelected) {
-    final isSelected = value == groupValue;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onSelected(value),
-      selectedColor: AppColors.primaryTeal.withOpacity(0.15),
-      labelStyle: TextStyle(
-        color: isSelected ? AppColors.primaryTeal : Colors.black87,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-      ),
-    );
-  }
-
-  Widget _buildBloodChip(String label, BloodGroup value) {
-    final isSelected = _bloodGroup == value;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => setState(() => _bloodGroup = value),
-      selectedColor: AppColors.primaryTeal.withOpacity(0.15),
-      labelStyle: TextStyle(
-        color: isSelected ? AppColors.primaryTeal : Colors.black87,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-      ),
-    );
-  }
   void _showAllergiesPicker() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: theme.cardTheme.color,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -368,25 +350,26 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  //Drag Handle
+                  // Drag Handle
                   Container(
                     width: 40,
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 14),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: isDark ? AppColors.darkBorder : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
 
-                  //Title
-                  const Align(
+                  // Title
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Select Allergies',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: theme.textTheme.bodyLarge?.color,
                       ),
                     ),
                   ),
@@ -421,13 +404,11 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                         child: Container(
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.primaryTeal.withOpacity(0.12)
-                                : Colors.grey.shade100,
+                                ? accent.withValues(alpha: 0.12)
+                                : (isDark ? AppColors.darkBackground : Colors.grey.shade100),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: isSelected
-                                  ? AppColors.primaryTeal
-                                  : Colors.grey.shade300,
+                              color: isSelected ? accent : (isDark ? AppColors.darkBorder : Colors.grey.shade300),
                             ),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -438,9 +419,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                                     ? Icons.check_box_rounded
                                     : Icons.check_box_outline_blank_rounded,
                                 size: 20,
-                                color: isSelected
-                                    ? AppColors.primaryTeal
-                                    : Colors.grey.shade500,
+                                color: isSelected ? accent : theme.textTheme.bodySmall?.color,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -448,12 +427,8 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                                   allergy,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                    color: isSelected
-                                        ? AppColors.primaryTeal
-                                        : Colors.black87,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                    color: isSelected ? accent : theme.textTheme.bodyLarge?.color,
                                   ),
                                 ),
                               ),
@@ -466,15 +441,15 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
                   const SizedBox(height: 20),
 
-                  //Done Button
+                  // Done Button
                   SizedBox(
                     width: double.infinity,
                     height: 46,
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryTeal,
-                        foregroundColor: Colors.white,
+                        backgroundColor: accent,
+                        foregroundColor: isDark ? AppColors.darkBackground : Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

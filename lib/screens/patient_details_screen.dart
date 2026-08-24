@@ -49,9 +49,7 @@ class PatientDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.screenTintedBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.screenTintedBackground,
         title: const Text('Medical Record'),
         actions: [
           IconButton(
@@ -109,17 +107,19 @@ class PatientDetailsScreen extends StatelessWidget {
           // ---------- Visit history ----------
           Text('Visit History', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          ..._visitHistory.map((visit) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              child: ListTile(
-                leading: const Icon(Icons.calendar_today_outlined, color: AppColors.primaryTeal),
-                title: Text(visit['date']!, style: Theme.of(context).textTheme.titleMedium),
-                subtitle: Text('${visit['reason']}\n${visit['doctor']}'),
-                isThreeLine: true,
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                children: [
+                  for (int i = 0; i < _visitHistory.length; i++) ...[
+                    _VisitHistoryRow(visit: _visitHistory[i]),
+                    if (i != _visitHistory.length - 1) const Divider(),
+                  ],
+                ],
               ),
-            );
-          }),
+            ),
+          ),
           const SizedBox(height: 16),
 
           // ---------- Expandable sections ----------
@@ -134,6 +134,36 @@ class PatientDetailsScreen extends StatelessWidget {
           const ExpandableRecordSection(
             title: 'Lab Reports',
             items: [],
+          ),
+        ],
+      ),
+    );
+  }
+}
+class _VisitHistoryRow extends StatelessWidget {
+  final Map<String, String> visit;
+
+  const _VisitHistoryRow({required this.visit});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(Icons.calendar_today_outlined, color: AppColors.primaryTeal),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(visit['date']!, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 2),
+                Text('${visit['reason']}', style: Theme.of(context).textTheme.bodyMedium),
+                Text('${visit['doctor']}', style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
           ),
         ],
       ),

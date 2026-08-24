@@ -24,4 +24,13 @@ class AppColors {
 
   static const Color cardTintedWhite = Color(0xFFF7FBFA);
   static const Color cardBorderTeal = Color(0xFFD3E6E4);
+
+  // ---------- Dark mode ----------
+  static const Color darkBackground = Color(0xFF0F1F1E);
+  static const Color darkSurface = Color(0xFF17302E);
+  static const Color darkCard = Color(0xFF1C3937);
+  static const Color darkBorder = Color(0xFF2A4C49);
+  static const Color darkTextPrimary = Color(0xFFE6F4F3);
+  static const Color darkTextSecondary = Color(0xFF9FC7C4);
+  static const Color primaryTealAccent = Color(0xFF2FBDB0);
 }

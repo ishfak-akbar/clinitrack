@@ -16,9 +16,7 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.screenTintedBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.screenTintedBackground,
         automaticallyImplyLeading: false,
         title: const Text('Dashboard'),
         actions: [
