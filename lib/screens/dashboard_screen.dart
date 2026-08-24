@@ -120,12 +120,11 @@ class _AppointmentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: () {
-        final matchingPatient = context.read<PatientProvider>().patients.where(
-              (p) => p.name.toLowerCase() == appointment.patientName.toLowerCase(),
-        );
+        final allPatients = context.read<PatientProvider>().patients;
+        final matching = allPatients.where((p) => p.id == appointment.patientId);
         Navigator.of(context).pushNamed(
           '/patient-details',
-          arguments: matchingPatient.isNotEmpty ? matchingPatient.first : null,
+          arguments: matching.isNotEmpty ? matching.first : null,
         );
       },
       contentPadding: EdgeInsets.zero,

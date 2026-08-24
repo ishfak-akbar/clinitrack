@@ -86,12 +86,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     );
                   },
                   onTap: () {
-                    final matchingPatient = context.read<PatientProvider>().patients.where(
-                          (p) => p.name.toLowerCase() == appt.patientName.toLowerCase(),
-                    );
+                    final allPatients = context.read<PatientProvider>().patients;
+                    final matching = allPatients.where((p) => p.id == appt.patientId);
                     Navigator.of(context).pushNamed(
                       '/patient-details',
-                      arguments: matchingPatient.isNotEmpty ? matchingPatient.first : null,
+                      arguments: matching.isNotEmpty ? matching.first : null,
                     );
                   },
                 );

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Appointment {
   final String id;
+  final String? patientId;
   final String patientName;
   final String date;
   final String time;
@@ -13,6 +14,7 @@ class Appointment {
 
   Appointment({
     required this.id,
+    this.patientId,
     required this.patientName,
     required this.date,
     required this.time,
@@ -23,6 +25,7 @@ class Appointment {
 
   Map<String, dynamic> toMap() => {
     'id': id,
+    'patientId': patientId,
     'patientName': patientName,
     'date': date,
     'time': time,
@@ -33,6 +36,7 @@ class Appointment {
 
   factory Appointment.fromMap(Map<String, dynamic> map) => Appointment(
     id: map['id'] as String,
+    patientId: map['patientId'] as String?,
     patientName: map['patientName'] as String,
     date: map['date'] as String,
     time: map['time'] as String,
@@ -43,6 +47,7 @@ class Appointment {
 
   Appointment copyWith({String? status}) => Appointment(
     id: id,
+    patientId: patientId,
     patientName: patientName,
     date: date,
     time: time,
@@ -58,11 +63,12 @@ class AppointmentProvider extends ChangeNotifier {
   List<Appointment> _appointments = [];
 
   List<Appointment> get appointments => _appointments;
+
   static final List<Appointment> _seedAppointments = [
-    Appointment(id: 'seed-1', patientName: 'John Doe', date: 'Today', time: '09:00 AM', reason: 'General Checkup', doctor: 'Dr. Sarah Ahmed', status: 'scheduled'),
-    Appointment(id: 'seed-2', patientName: 'Emily Smith', date: 'Today', time: '10:30 AM', reason: 'Fever & Cold', doctor: 'Dr. Sarah Ahmed', status: 'scheduled'),
-    Appointment(id: 'seed-3', patientName: 'Michael Brown', date: 'Today', time: '12:00 PM', reason: 'Follow-up', doctor: 'Dr. James Wilson', status: 'completed'),
-    Appointment(id: 'seed-4', patientName: 'Sarah Johnson', date: 'Today', time: '02:30 PM', reason: 'Consultation', doctor: 'Dr. Emily Clark', status: 'completed'),
+    Appointment(id: 'seed-1', patientId: 'seed-1', patientName: 'John Doe', date: 'Today', time: '09:00 AM', reason: 'General Checkup', doctor: 'Dr. Sarah Ahmed', status: 'scheduled'),
+    Appointment(id: 'seed-2', patientId: 'seed-2', patientName: 'Emily Smith', date: 'Today', time: '10:30 AM', reason: 'Fever & Cold', doctor: 'Dr. Sarah Ahmed', status: 'scheduled'),
+    Appointment(id: 'seed-3', patientId: 'seed-3', patientName: 'Michael Brown', date: 'Today', time: '12:00 PM', reason: 'Follow-up', doctor: 'Dr. James Wilson', status: 'completed'),
+    Appointment(id: 'seed-4', patientId: 'seed-4', patientName: 'Sarah Johnson', date: 'Today', time: '02:30 PM', reason: 'Consultation', doctor: 'Dr. Emily Clark', status: 'completed'),
   ];
 
   Future<void> loadAppointments() async {

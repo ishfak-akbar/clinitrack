@@ -5,6 +5,7 @@ import '../widgets/section_label.dart';
 import '../widgets/form_section_card.dart';
 import '../widgets/sticky_save_button.dart';
 import '../providers/appointment_provider.dart';
+import '../providers/patient_provider.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   const AddAppointmentScreen({super.key});
@@ -15,7 +16,7 @@ class AddAppointmentScreen extends StatefulWidget {
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _patientNameController = TextEditingController();
+  Patient? _selectedPatient;
   final _reasonController = TextEditingController();
 
   DateTime? _selectedDate;
@@ -32,7 +33,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   @override
   void dispose() {
-    _patientNameController.dispose();
     _reasonController.dispose();
     super.dispose();
   }
@@ -86,11 +86,19 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       return;
     }
 
+    if (_selectedPatient == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a patient'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     final appointment = Appointment(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      patientName: _patientNameController.text.trim(),
+      patientId: _selectedPatient!.id,
+      patientName: _selectedPatient!.name,
       date: _formatDate(_selectedDate!),
       time: _formatTime(_selectedTime!),
       reason: _reasonController.text.trim(),
@@ -129,17 +137,28 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               // ---------- Patient & Reason ----------
               FormSectionCard(
                 children: [
-                  const SectionLabel('Patient Name', icon: Icons.person_outline),
+                  const SectionLabel('Patient', icon: Icons.person_outline),
                   const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _patientNameController,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter patient name',
-                      prefixIcon: Icon(Icons.person_outline),
-                    ),
-                    validator: (value) =>
-                    (value == null || value.trim().isEmpty) ? 'Patient name is required' : null,
+                  Consumer<PatientProvider>(
+                    builder: (context, patientProvider, _) {
+                      final patients = patientProvider.patients;
+                      return DropdownButtonFormField<Patient>(
+                        initialValue: _selectedPatient,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          hintText: 'Select patient',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
+                        items: patients
+                            .map((p) => DropdownMenuItem(
+                          value: p,
+                          child: Text('${p.name} (${p.age} yrs, ${p.gender})', overflow: TextOverflow.ellipsis),
+                        ))
+                            .toList(),
+                        onChanged: (value) => setState(() => _selectedPatient = value),
+                        validator: (value) => value == null ? 'Please select a patient' : null,
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
                   const SectionLabel('Reason', icon: Icons.notes_outlined),
