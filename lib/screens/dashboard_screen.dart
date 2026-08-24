@@ -6,6 +6,7 @@ import '../widgets/dashboard_stat_card.dart';
 import '../widgets/app_add_fab.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/patient_provider.dart';
+import '../widgets/app_scaffold.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -15,7 +16,7 @@ class DashboardScreen extends StatelessWidget {
     final appointments = context.watch<AppointmentProvider>().appointments;
     final visibleAppointments = appointments.take(4).toList();
 
-    return Scaffold(
+    return AppScaffold(
       extendBody: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,

@@ -1,3 +1,4 @@
+import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import '../widgets/section_label.dart';
 import '../widgets/form_section_card.dart';
@@ -100,7 +101,7 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
+      child: AppScaffold(
         appBar: AppBar(
           elevation: 0,
           title: const Text('Add Prescription'),

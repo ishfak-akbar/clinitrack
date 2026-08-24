@@ -1,3 +1,4 @@
+import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/section_label.dart';
@@ -87,7 +88,7 @@ class _FollowUpScreenState extends State<FollowUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       extendBody: true,
       appBar: AppBar(title: const Text('Follow-up')),
       body: Form(

@@ -1,3 +1,4 @@
+import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/app_colors.dart';
@@ -21,7 +22,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
 
-    return Scaffold(
+    return AppScaffold(
       extendBody: true,
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(

@@ -1,3 +1,4 @@
+import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/expandable_record_section.dart';
@@ -46,7 +47,7 @@ class PatientDetailsScreen extends StatelessWidget {
     final patient = ModalRoute.of(context)?.settings.arguments as Patient?;
 
     if (patient == null) {
-      return Scaffold(
+      return AppScaffold(
         appBar: AppBar(title: const Text('Medical Record')),
         body: Center(
           child: Padding(

@@ -1,3 +1,4 @@
+import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -43,7 +44,7 @@ class MoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       extendBody: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,

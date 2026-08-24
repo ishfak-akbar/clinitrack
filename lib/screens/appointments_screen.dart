@@ -1,3 +1,4 @@
+import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -41,7 +42,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     final allAppointments = context.watch<AppointmentProvider>().appointments;
     final filtered = _filteredAppointments(allAppointments);
 
-    return Scaffold(
+    return AppScaffold(
       extendBody: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,

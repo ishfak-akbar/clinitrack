@@ -1,3 +1,4 @@
+import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/dashboard_stat_card.dart';
@@ -7,7 +8,7 @@ class ReportsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AppScaffold(
       extendBody: true,
       appBar: AppBar(title: const Text('Reports')),
       body: ListView(

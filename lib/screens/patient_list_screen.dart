@@ -1,3 +1,4 @@
+import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -35,7 +36,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
     final allPatients = context.watch<PatientProvider>().patients;
     final filtered = _filteredPatients(allPatients);
 
-    return Scaffold(
+    return AppScaffold(
       extendBody: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
