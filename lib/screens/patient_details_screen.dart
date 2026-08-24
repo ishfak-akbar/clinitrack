@@ -68,8 +68,8 @@ class PatientDetailsScreen extends StatelessWidget {
             children: [
               const CircleAvatar(
                 radius: 28,
-                backgroundColor: AppColors.primaryTealLight,
-                child: Text('J', style: TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.w700, fontSize: 20)),
+                backgroundColor: AppColors.primaryTeal,
+                child: Text('N', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 20)),
               ),
               const SizedBox(width: 12),
               Column(

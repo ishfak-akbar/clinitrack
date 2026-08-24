@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
-import '../widgets/section_label.dart';
 import 'package:provider/provider.dart';
+import '../utils/app_colors.dart';
 import '../providers/patient_provider.dart';
+import '../widgets/section_label.dart';
 
 enum Gender { male, female, other }
 enum BloodGroup { aPos, aNeg, bPos, bNeg, abPos, abNeg, oPos, oNeg }
@@ -26,7 +26,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   bool _isSaving = false;
 
   final Set<String> _allergies = {};
-  final List<String> _allergyOptions = ['Penicillin', 'Peanuts', 'Latex', 'None'];
+  final List<String> _allergyOptions = ['Milk', 'Peanuts', 'Latex', 'Dust', 'Others', 'None'];
 
   @override
   void dispose() {
@@ -51,6 +51,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       Gender.female => 'Female',
       Gender.other => 'Other',
     };
+
     final bloodGroupLabel = switch (_bloodGroup) {
       BloodGroup.aPos => 'A+',
       BloodGroup.aNeg => 'A-',
@@ -78,169 +79,419 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
     if (!mounted) return;
     setState(() => _isSaving = false);
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${patient.name} saved successfully')),
+      SnackBar(
+        content: Text('${patient.name} saved successfully'),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: AppColors.screenTintedBackground,
-      appBar: AppBar(backgroundColor: AppColors.screenTintedBackground,title: const Text('Add Patient')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            const SectionLabel('Patient Name'),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(hintText: 'Nahian'),
-              validator: _requiredValidator,
-            ),
-            const SizedBox(height: 16),
-
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.screenTintedBackground,
+        appBar: AppBar(
+          backgroundColor: AppColors.screenTintedBackground,
+          elevation: 0,
+          title: const Text('Add Patient'),
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            children: [
+              // ---------- Basic Info Card ----------
+              _buildCard(
+                children: [
+                  const SectionLabel('Basic Information', icon: Icons.person_outline),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _nameController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: 'Full Name',
+                      hintText: 'Enter patient name',
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
+                    validator: _requiredValidator,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
                     children: [
-                      const SectionLabel('Age'),
-                      TextFormField(
-                        controller: _ageController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(hintText: '28'),
-                        validator: _requiredValidator,
+                      Expanded(
+                        child: TextFormField(
+                          controller: _ageController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Age',
+                            hintText: '28',
+                            prefixIcon: Icon(Icons.cake_outlined),
+                          ),
+                          validator: _requiredValidator,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: TextFormField(
+                          controller: _contactController,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'Contact Number',
+                            hintText: '01XXXXXXXXX',
+                            prefixIcon: Icon(Icons.phone_outlined),
+                          ),
+                          validator: _requiredValidator,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                ],
+              ),
+      
+              const SizedBox(height: 16),
+      
+              // ---------- Gender & Blood Group ----------
+              _buildCard(
+                children: [
+                  const SectionLabel('Gender', icon: Icons.wc_outlined),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
                     children: [
-                      const SectionLabel('Gender'),
-                      Wrap(
-                        spacing: 4,
+                      _buildChoiceChip('Male', Gender.male, _gender, (v) => setState(() => _gender = v)),
+                      _buildChoiceChip('Female', Gender.female, _gender, (v) => setState(() => _gender = v)),
+                      _buildChoiceChip('Other', Gender.other, _gender, (v) => setState(() => _gender = v)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const SectionLabel('Blood Group', icon: Icons.bloodtype_outlined),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildBloodChip('A+', BloodGroup.aPos),
+                      _buildBloodChip('A-', BloodGroup.aNeg),
+                      _buildBloodChip('B+', BloodGroup.bPos),
+                      _buildBloodChip('B-', BloodGroup.bNeg),
+                      _buildBloodChip('O+', BloodGroup.oPos),
+                      _buildBloodChip('O-', BloodGroup.oNeg),
+                      _buildBloodChip('AB+', BloodGroup.abPos),
+                      _buildBloodChip('AB-', BloodGroup.abNeg),
+                    ],
+                  ),
+                ],
+              ),
+      
+              const SizedBox(height: 16),
+      
+              // ---------- Medical History ----------
+              _buildCard(
+                children: [
+                  const SectionLabel('Medical History', icon: Icons.medical_information_outlined),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _historyController,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      hintText: 'Previous illnesses, surgeries, chronic conditions...',
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                ],
+              ),
+      
+              const SizedBox(height: 16),
+              
+              // ---------- Allergies ----------
+              _buildCard(
+                children: [
+                  const SectionLabel('Allergies', icon: Icons.warning_amber_rounded),
+                  const SizedBox(height: 8),
+      
+                  // Clean dropdown button
+                  InkWell(
+                    onTap: _showAllergiesPicker,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.grey.shade50,
+                      ),
+                      child: Row(
                         children: [
-                          _genderRadio('Male', Gender.male),
-                          _genderRadio('Female', Gender.female),
-                          _genderRadio('Other', Gender.other),
+                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                          const SizedBox(width: 8),
+                          Text(
+                            _allergies.isEmpty ? 'Select allergies' : '${_allergies.length} selected',
+                            style: TextStyle(
+                              color: _allergies.isEmpty ? Colors.grey : Colors.black87,
+                              fontSize: 15,
+                            ),
+                          ),
                         ],
                       ),
-                    ],
+                    ),
+                  ),
+
+                  if (_allergies.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _allergies.map((allergy) {
+                        return Chip(
+                          label: Text(allergy, style: const TextStyle(fontSize: 13)),
+                          backgroundColor: AppColors.primaryTeal.withOpacity(0.12),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () {
+                            setState(() => _allergies.remove(allergy));
+                          },
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      
+        // ---------- Sticky Save Button ----------
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _handleSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryTeal,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ],
+                child: _isSaving
+                    ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                )
+                    : const Text(
+                  'Save Patient',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-
-            const SectionLabel('Contact'),
-            TextFormField(
-              controller: _contactController,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(hintText: '01912345678'),
-              validator: _requiredValidator,
-            ),
-            const SizedBox(height: 16),
-
-            const SectionLabel('Blood Group'),
-            Wrap(
-              spacing: 4,
-              runSpacing: 0,
-              children: [
-                _bloodGroupRadio('A+', BloodGroup.aPos),
-                _bloodGroupRadio('A-', BloodGroup.aNeg),
-                _bloodGroupRadio('B+', BloodGroup.bPos),
-                _bloodGroupRadio('B-', BloodGroup.bNeg),
-                _bloodGroupRadio('O+', BloodGroup.oPos),
-                _bloodGroupRadio('O-', BloodGroup.oNeg),
-                _bloodGroupRadio('AB+', BloodGroup.abPos),
-                _bloodGroupRadio('AB-', BloodGroup.abNeg),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            const SectionLabel('Medical History'),
-            TextFormField(
-              controller: _historyController,
-              maxLines: 3,
-              decoration: const InputDecoration(hintText: 'No major illnesses in the past.'),
-            ),
-            const SizedBox(height: 16),
-
-            const SectionLabel('Allergies'),
-            ..._allergyOptions.map((allergy) {
-              return CheckboxListTile(
-                value: _allergies.contains(allergy),
-                title: Text(allergy),
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (checked) {
-                  setState(() {
-                    if (checked == true) {
-                      _allergies.add(allergy);
-                    } else {
-                      _allergies.remove(allergy);
-                    }
-                  });
-                },
-              );
-            }),
-            const SizedBox(height: 24),
-
-            ElevatedButton(
-              onPressed: _isSaving ? null : _handleSave,
-              child: _isSaving
-                  ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.cardWhite),
-              )
-                  : const Text('Save Patient'),
-            ),
-            const SizedBox(height: 16),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _genderRadio(String label, Gender value) {
-    return SizedBox(
-      width: 100,
-      child: RadioListTile<Gender>(
-        value: value,
-        groupValue: _gender,
-        title: Text(label, style: const TextStyle(fontSize: 13)),
-        contentPadding: EdgeInsets.zero,
-        dense: true,
-        visualDensity: const VisualDensity(horizontal: -3),
-        onChanged: (v) => setState(() => _gender = v!),
+  // ---------- Helper Widgets ----------
+
+  Widget _buildCard({required List<Widget> children}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
       ),
     );
   }
 
-  Widget _bloodGroupRadio(String label, BloodGroup value) {
-    return SizedBox(
-      width: 90,
-      child: RadioListTile<BloodGroup>(
-        value: value,
-        groupValue: _bloodGroup,
-        title: Text(label, style: const TextStyle(fontSize: 13)),
-        contentPadding: EdgeInsets.zero,
-        dense: true,
-        visualDensity: const VisualDensity(horizontal: -4),
-        onChanged: (v) => setState(() => _bloodGroup = v!),
+  Widget _buildChoiceChip<T>(String label, T value, T groupValue, ValueChanged<T> onSelected) {
+    final isSelected = value == groupValue;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onSelected(value),
+      selectedColor: AppColors.primaryTeal.withOpacity(0.15),
+      labelStyle: TextStyle(
+        color: isSelected ? AppColors.primaryTeal : Colors.black87,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
+    );
+  }
+
+  Widget _buildBloodChip(String label, BloodGroup value) {
+    final isSelected = _bloodGroup == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => setState(() => _bloodGroup = value),
+      selectedColor: AppColors.primaryTeal.withOpacity(0.15),
+      labelStyle: TextStyle(
+        color: isSelected ? AppColors.primaryTeal : Colors.black87,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      ),
+    );
+  }
+  void _showAllergiesPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  //Drag Handle
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  //Title
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Select Allergies',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _allergyOptions.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 3.2,
+                    ),
+                    itemBuilder: (context, index) {
+                      final allergy = _allergyOptions[index];
+                      final isSelected = _allergies.contains(allergy);
+
+                      return InkWell(
+                        onTap: () {
+                          setModalState(() {
+                            if (isSelected) {
+                              _allergies.remove(allergy);
+                            } else {
+                              _allergies.add(allergy);
+                            }
+                          });
+                          setState(() {});
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.primaryTeal.withOpacity(0.12)
+                                : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primaryTeal
+                                  : Colors.grey.shade300,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            children: [
+                              Icon(
+                                isSelected
+                                    ? Icons.check_box_rounded
+                                    : Icons.check_box_outline_blank_rounded,
+                                size: 20,
+                                color: isSelected
+                                    ? AppColors.primaryTeal
+                                    : Colors.grey.shade500,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  allergy,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? AppColors.primaryTeal
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  //Done Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 46,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryTeal,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Done',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
