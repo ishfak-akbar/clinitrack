@@ -63,7 +63,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
               ),
             )
                 : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
               itemCount: filtered.length,
               itemBuilder: (context, index) {
                 final patient = filtered[index];

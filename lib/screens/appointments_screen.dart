@@ -68,7 +68,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ),
             )
                 : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               itemCount: filtered.length,
               itemBuilder: (context, index) {
                 final appt = filtered[index];

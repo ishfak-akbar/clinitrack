@@ -50,7 +50,7 @@ class MoreScreen extends StatelessWidget {
         title: const Text('More'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
           // ---------- Profile summary ----------
           Card(
