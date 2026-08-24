@@ -45,82 +45,106 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryTeal,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadowColor,
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+              AppColors.darkBackground,
+              AppColors.darkSurface,
+              AppColors.darkCard.withValues(alpha: 0.9),
+            ]
+                : [
+              const Color(0xFFE8F5F4),
+              AppColors.screenTintedBackground,
+              const Color(0xFFD6EFEC),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryTeal,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadowColor,
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.favorite_rounded, color: AppColors.cardWhite, size: 44),
                 ),
-                child: const Icon(Icons.favorite_rounded, color: AppColors.cardWhite, size: 44),
-              ),
-              const SizedBox(height: 28),
-              Text('Patient Tracker', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: 4),
-              Text(
-                'Clinic Assistant',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primaryTeal),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Smart. Simple. Secure.\nBetter care, every day.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textGray),
-              ),
-              const SizedBox(height: 48),
-              SizedBox(
-                height: 220,
-                width: double.infinity,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    Positioned(
-                      bottom: -10,
-                      child: Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryTeal.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
+                const SizedBox(height: 28),
+                Text('CliniTrack', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 4),
+                Text(
+                  'Clinic Assistant',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primaryTeal),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Smart. Simple. Secure.\nBetter care, every day.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textGray),
+                ),
+                const SizedBox(height: 48),
+                SizedBox(
+                  height: 220,
+                  width: double.infinity,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        bottom: -10,
+                        child: Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryTeal.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    ),
-                    Center(
-                      child: CircleAvatar(
-                        radius: 80,
-                        backgroundColor: AppColors.cardWhite,
-                        child: Icon(Icons.medical_services_rounded, size: 72, color: AppColors.primaryTeal),
+                      Center(
+                        child: CircleAvatar(
+                          radius: 80,
+                          backgroundColor: AppColors.cardWhite,
+                          child: Icon(Icons.medical_services_rounded, size: 72, color: AppColors.primaryTeal),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 40),
-              const SizedBox(
-                width: 28,
-                height: 28,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryTeal),
+                const SizedBox(height: 40),
+                const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryTeal),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
