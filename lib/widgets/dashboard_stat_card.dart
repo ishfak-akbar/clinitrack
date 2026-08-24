@@ -6,27 +6,34 @@ class DashboardStatCard extends StatelessWidget {
   final String label;
   final String value;
   final Color iconColor;
-  final Color iconBackground;
-  final Color cardBackground;
+  final Color lightIconBackground;
+  final Color lightCardBackground;
 
   const DashboardStatCard({
     super.key,
     required this.icon,
     required this.label,
     required this.value,
-    this.iconColor = AppColors.primaryTeal,
-    this.iconBackground = AppColors.primaryTealLight,
-    this.cardBackground = AppColors.cardTintedWhite,
+    required this.iconColor,
+    required this.lightIconBackground,
+    required this.lightCardBackground,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final cardBg = isDark ? iconColor.withValues(alpha: 0.12) : lightCardBackground;
+    final iconBg = isDark ? iconColor.withValues(alpha: 0.22) : lightIconBackground;
+    final borderColor = isDark ? iconColor.withValues(alpha: 0.30) : AppColors.cardBorderTeal;
+    final valueColor = isDark ? AppColors.darkTextPrimary : AppColors.textDark;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: cardBackground,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.cardBorderTeal),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -34,7 +41,10 @@ class DashboardStatCard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: iconBackground, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(height: 12),
@@ -50,7 +60,7 @@ class DashboardStatCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontSize: 22,
-              color: AppColors.textDark,
+              color: valueColor,
             ),
           ),
         ],

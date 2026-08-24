@@ -33,4 +33,9 @@ class AppColors {
   static const Color darkTextPrimary = Color(0xFFE6F4F3);
   static const Color darkTextSecondary = Color(0xFF9FC7C4);
   static const Color primaryTealAccent = Color(0xFF2FBDB0);
+
+  // Follow-ups / Alert accent
+  static const Color followUpOrange = Color(0xFFDC2626);
+  static const Color followUpOrangeLight = Color(0xFFFEE2E2);
+  static const Color followUpOrangeCard = Color(0xFFFEF2F2);
 }

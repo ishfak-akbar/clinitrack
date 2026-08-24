@@ -23,6 +23,9 @@ class ReportsScreen extends StatelessWidget {
                   icon: Icons.people_outline,
                   label: 'Total Patients',
                   value: '245',
+                  iconColor: AppColors.primaryTeal,
+                  lightIconBackground: AppColors.primaryTealLight,
+                  lightCardBackground: Color(0xFFF2FBF6),
                 ),
               ),
               SizedBox(width: 12),
@@ -32,7 +35,8 @@ class ReportsScreen extends StatelessWidget {
                   label: 'Appointments',
                   value: '58',
                   iconColor: AppColors.successGreen,
-                  iconBackground: Color(0xFFE3F6ED),
+                  lightIconBackground: Color(0xFFE3F6ED),
+                  lightCardBackground: Color(0xFFF2FBF6),
                 ),
               ),
             ],
@@ -46,7 +50,8 @@ class ReportsScreen extends StatelessWidget {
                   label: 'Prescriptions',
                   value: '132',
                   iconColor: AppColors.warningAmber,
-                  iconBackground: Color(0xFFFDF0DC),
+                  lightIconBackground: Color(0xFFFDF0DC),
+                  lightCardBackground: Color(0xFFFFF8EE),
                 ),
               ),
               SizedBox(width: 12),
@@ -55,8 +60,9 @@ class ReportsScreen extends StatelessWidget {
                   icon: Icons.schedule_outlined,
                   label: 'Follow-ups Due',
                   value: '12',
-                  iconColor: AppColors.errorRed,
-                  iconBackground: Color(0xFFFCE8E8),
+                  iconColor: AppColors.followUpOrange,
+                  lightIconBackground: AppColors.followUpOrangeLight,
+                  lightCardBackground: AppColors.followUpOrangeCard,
                 ),
               ),
             ],
@@ -85,19 +91,32 @@ class ReportsScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Wrap(
-                spacing: 11,
-                runSpacing: 11,
-                children: const [
-                  _BloodGroupChip(label: 'A+', count: '48'),
-                  _BloodGroupChip(label: 'A-', count: '12'),
-                  _BloodGroupChip(label: 'B+', count: '56'),
-                  _BloodGroupChip(label: 'B-', count: '9'),
-                  _BloodGroupChip(label: 'O+', count: '78'),
-                  _BloodGroupChip(label: 'O-', count: '14'),
-                  _BloodGroupChip(label: 'AB+', count: '21'),
-                  _BloodGroupChip(label: 'AB-', count: '7'),
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                children: [
+                  Row(
+                    children: const [
+                      Expanded(child: _BloodGroupChip(label: 'A+', count: '48')),
+                      SizedBox(width: 10),
+                      Expanded(child: _BloodGroupChip(label: 'A-', count: '12')),
+                      SizedBox(width: 10),
+                      Expanded(child: _BloodGroupChip(label: 'B+', count: '56')),
+                      SizedBox(width: 10),
+                      Expanded(child: _BloodGroupChip(label: 'B-', count: '9')),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: const [
+                      Expanded(child: _BloodGroupChip(label: 'O+', count: '78')),
+                      SizedBox(width: 10),
+                      Expanded(child: _BloodGroupChip(label: 'O-', count: '14')),
+                      SizedBox(width: 10),
+                      Expanded(child: _BloodGroupChip(label: 'AB+', count: '21')),
+                      SizedBox(width: 10),
+                      Expanded(child: _BloodGroupChip(label: 'AB-', count: '7')),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -141,18 +160,36 @@ class _BloodGroupChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
+
     return Container(
-      width: 72,
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.primaryTealLight,
+        color: accent.withValues(alpha: isDark ? 0.15 : 0.10),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: accent.withValues(alpha: isDark ? 0.35 : 0.22),
+        ),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.w700, fontSize: 15)),
-          const SizedBox(height: 2),
-          Text(count, style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            label,
+            style: TextStyle(
+              color: accent,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            count,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textGray,
+            ),
+          ),
         ],
       ),
     );
