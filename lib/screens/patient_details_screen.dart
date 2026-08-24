@@ -25,6 +25,7 @@ class PatientDetailsScreen extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Cancel'),
           ),
+          SizedBox(height: 7,),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
             onPressed: () => Navigator.of(context).pop(true),
@@ -35,8 +36,15 @@ class PatientDetailsScreen extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
+      await context.read<PatientProvider>().deletePatient(patient.id);
+
+      if (!context.mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${patient.name} deleted')),
+        SnackBar(
+          content: Text('${patient.name} deleted'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       Navigator.of(context).pop();
     }
