@@ -98,7 +98,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             const SectionLabel('Patient Name'),
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(hintText: 'John Doe'),
+              decoration: const InputDecoration(hintText: 'Nahian'),
               validator: _requiredValidator,
             ),
             const SizedBox(height: 16),
@@ -223,6 +223,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
         title: Text(label, style: const TextStyle(fontSize: 13)),
         contentPadding: EdgeInsets.zero,
         dense: true,
+        visualDensity: const VisualDensity(horizontal: -3),
         onChanged: (v) => setState(() => _gender = v!),
       ),
     );
@@ -237,6 +238,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
         title: Text(label, style: const TextStyle(fontSize: 13)),
         contentPadding: EdgeInsets.zero,
         dense: true,
+        visualDensity: const VisualDensity(horizontal: -4),
         onChanged: (v) => setState(() => _bloodGroup = v!),
       ),
     );

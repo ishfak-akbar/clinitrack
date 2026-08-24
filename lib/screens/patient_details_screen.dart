@@ -75,7 +75,7 @@ class PatientDetailsScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('John Doe', style: Theme.of(context).textTheme.titleLarge),
+                  Text('Nahian', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 2),
                   Text('28 yrs, Male  |  A+', style: Theme.of(context).textTheme.bodyMedium),
                   Text('Phone: 01912345678', style: Theme.of(context).textTheme.bodyMedium),
