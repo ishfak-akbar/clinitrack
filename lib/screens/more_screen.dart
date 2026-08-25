@@ -60,8 +60,7 @@ class MoreScreen extends StatelessWidget {
               contentPadding: const EdgeInsets.all(12),
               leading: const CircleAvatar(
                 radius: 26,
-                backgroundColor: AppColors.primaryTealLight,
-                child: Icon(Icons.person, color: AppColors.primaryTeal, size: 28),
+                backgroundImage: AssetImage('assets/doctor.png'),
               ),
               title: Text('Dr. Ishfak Akbar', style: Theme.of(context).textTheme.titleMedium),
               subtitle: const Text('General Physician'),

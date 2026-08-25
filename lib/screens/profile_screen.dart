@@ -41,8 +41,7 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 const CircleAvatar(
                   radius: 48,
-                  backgroundColor: AppColors.primaryTealLight,
-                  child: Icon(Icons.person, size: 52, color: AppColors.primaryTeal),
+                  backgroundImage: AssetImage('assets/doctor.png'),
                 ),
                 const SizedBox(height: 14),
                 Text('Dr. Ishfak Akbar', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 20)),

@@ -28,8 +28,7 @@ class DashboardScreen extends StatelessWidget {
               onTap: () => Navigator.of(context).pushNamed('/profile'),
               child: const CircleAvatar(
                 radius: 18,
-                backgroundColor: AppColors.primaryTeal,
-                child: Icon(Icons.person, color: AppColors.primaryTealLight),
+                backgroundImage: AssetImage('assets/doctor.png'),
               ),
             ),
           ),
