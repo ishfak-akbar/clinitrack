@@ -21,6 +21,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _licenseController;
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
+  late final TextEditingController _qualificationsController;
+  late final TextEditingController _experienceController;
+  late final TextEditingController _clinicAddressController;
+  late final TextEditingController _bioController;
 
   bool _isSaving = false;
 
@@ -33,6 +37,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _licenseController = TextEditingController(text: auth.licenseNumber);
     _emailController = TextEditingController(text: auth.email);
     _phoneController = TextEditingController(text: auth.phone);
+    _qualificationsController = TextEditingController(text: auth.qualifications);
+    _experienceController = TextEditingController(text: auth.experienceYears);
+    _clinicAddressController = TextEditingController(text: auth.clinicAddress);
+    _bioController = TextEditingController(text: auth.bio);
   }
 
   @override
@@ -42,6 +50,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _licenseController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _qualificationsController.dispose();
+    _experienceController.dispose();
+    _clinicAddressController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -67,6 +79,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       licenseNumber: _licenseController.text.trim(),
       email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
+      qualifications: _qualificationsController.text.trim(),
+      experienceYears: _experienceController.text.trim(),
+      clinicAddress: _clinicAddressController.text.trim(),
+      bio: _bioController.text.trim(),
     );
 
     if (!mounted) return;
@@ -93,7 +109,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         body: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             children: [
               Center(
                 child: Stack(
@@ -191,9 +207,73 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ],
               ),
+
+              const SizedBox(height: 16),
+
+              // ---------- Professional Details Card ----------
+              FormSectionCard(
+                children: [
+                  const SectionLabel('Professional Details', icon: Icons.school_outlined),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _qualificationsController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: 'Qualifications',
+                      hintText: 'e.g. MBBS, FCPS (Medicine)',
+                      prefixIcon: Icon(Icons.school_outlined),
+                    ),
+                    validator: _requiredValidator,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _experienceController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Years of Experience',
+                      hintText: 'e.g. 5',
+                      prefixIcon: Icon(Icons.work_history_outlined),
+                    ),
+                    validator: _requiredValidator,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _clinicAddressController,
+                    textCapitalization: TextCapitalization.words,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Clinic Address',
+                      hintText: 'e.g. Zindabazar, Sylhet',
+                      prefixIcon: Icon(Icons.location_on_outlined),
+                    ),
+                    validator: _requiredValidator,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // ---------- About Card ----------
+              FormSectionCard(
+                children: [
+                  const SectionLabel('About', icon: Icons.info_outline),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _bioController,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Bio',
+                      hintText: 'A short introduction patients will see on your profile...',
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
+
+        // ---------- Sticky Save Button ----------
         bottomNavigationBar: StickySaveButton(
           isSaving: _isSaving,
           onPressed: _handleSave,
