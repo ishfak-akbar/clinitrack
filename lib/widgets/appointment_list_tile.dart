@@ -24,15 +24,19 @@ class AppointmentListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isCompleted = status == AppointmentStatus.completed;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
-          backgroundColor: AppColors.primaryTealLight,
+          radius: 22,
+          backgroundColor: accent.withValues(alpha: 0.12),
           child: Text(
             patientName.isNotEmpty ? patientName.substring(0, 1) : '?',
-            style: const TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.w700),
+            style: TextStyle(color: accent, fontWeight: FontWeight.w700, fontSize: 16),
           ),
         ),
         title: Text(patientName, style: Theme.of(context).textTheme.titleMedium),

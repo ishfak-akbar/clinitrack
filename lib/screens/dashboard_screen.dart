@@ -119,6 +119,9 @@ class _AppointmentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
+
     return ListTile(
       onTap: () {
         final allPatients = context.read<PatientProvider>().patients;
@@ -130,10 +133,11 @@ class _AppointmentRow extends StatelessWidget {
       },
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
-        backgroundColor: AppColors.primaryTealLight,
+        radius: 22,
+        backgroundColor: accent.withValues(alpha: 0.12),
         child: Text(
           appointment.patientName.isNotEmpty ? appointment.patientName.substring(0, 1) : '?',
-          style: const TextStyle(color: AppColors.primaryTeal, fontWeight: FontWeight.w700),
+          style: TextStyle(color: accent, fontWeight: FontWeight.w700, fontSize: 16),
         ),
       ),
       title: Text(appointment.patientName, style: Theme.of(context).textTheme.titleMedium),
