@@ -7,6 +7,7 @@ class Appointment {
   final String? patientId;
   final String patientName;
   final String date;
+  final String dateIso;
   final String time;
   final String reason;
   final String doctor;
@@ -17,6 +18,7 @@ class Appointment {
     this.patientId,
     required this.patientName,
     required this.date,
+    required this.dateIso,
     required this.time,
     required this.reason,
     required this.doctor,
@@ -28,6 +30,7 @@ class Appointment {
     'patientId': patientId,
     'patientName': patientName,
     'date': date,
+    'dateIso': dateIso,
     'time': time,
     'reason': reason,
     'doctor': doctor,
@@ -39,6 +42,7 @@ class Appointment {
     patientId: map['patientId'] as String?,
     patientName: map['patientName'] as String,
     date: map['date'] as String,
+    dateIso: map['dateIso'] as String? ?? '',
     time: map['time'] as String,
     reason: map['reason'] as String,
     doctor: map['doctor'] as String,
@@ -50,6 +54,7 @@ class Appointment {
     patientId: patientId,
     patientName: patientName,
     date: date,
+    dateIso: dateIso,
     time: time,
     reason: reason,
     doctor: doctor,
@@ -65,10 +70,10 @@ class AppointmentProvider extends ChangeNotifier {
   List<Appointment> get appointments => _appointments;
 
   static final List<Appointment> _seedAppointments = [
-    Appointment(id: 'seed-1', patientId: 'seed-1', patientName: 'John Doe', date: 'Today', time: '09:00 AM', reason: 'General Checkup', doctor: 'Dr. Sarah Ahmed', status: 'scheduled'),
-    Appointment(id: 'seed-2', patientId: 'seed-2', patientName: 'Emily Smith', date: 'Today', time: '10:30 AM', reason: 'Fever & Cold', doctor: 'Dr. Sarah Ahmed', status: 'scheduled'),
-    Appointment(id: 'seed-3', patientId: 'seed-3', patientName: 'Michael Brown', date: 'Today', time: '12:00 PM', reason: 'Follow-up', doctor: 'Dr. James Wilson', status: 'completed'),
-    Appointment(id: 'seed-4', patientId: 'seed-4', patientName: 'Sarah Johnson', date: 'Today', time: '02:30 PM', reason: 'Consultation', doctor: 'Dr. Emily Clark', status: 'completed'),
+    Appointment(id: 'seed-1', patientId: 'seed-1', patientName: 'John Doe', date: '18 May 2025', dateIso: '2025-05-18', time: '09:00 AM', reason: 'General Checkup', doctor: 'Dr. Sarah Ahmed', status: 'scheduled'),
+    Appointment(id: 'seed-2', patientId: 'seed-2', patientName: 'Emily Smith', date: '17 May 2025', dateIso: '2025-05-17', time: '10:30 AM', reason: 'Fever & Cold', doctor: 'Dr. Sarah Ahmed', status: 'scheduled'),
+    Appointment(id: 'seed-3', patientId: 'seed-3', patientName: 'Michael Brown', date: '15 May 2025', dateIso: '2025-05-15', time: '12:00 PM', reason: 'Follow-up', doctor: 'Dr. James Wilson', status: 'completed'),
+    Appointment(id: 'seed-4', patientId: 'seed-4', patientName: 'Sarah Johnson', date: '14 May 2025', dateIso: '2025-05-14', time: '02:30 PM', reason: 'Consultation', doctor: 'Dr. Emily Clark', status: 'completed'),
   ];
 
   Future<void> loadAppointments() async {
@@ -84,6 +89,14 @@ class AppointmentProvider extends ChangeNotifier {
           .toList();
     }
     notifyListeners();
+  }
+
+  List<Appointment> visitHistoryForPatient(String patientId) {
+    final visits = _appointments
+        .where((a) => a.patientId == patientId && a.status == 'completed')
+        .toList();
+    visits.sort((a, b) => b.dateIso.compareTo(a.dateIso));
+    return visits;
   }
 
   Future<void> addAppointment(Appointment appointment) async {

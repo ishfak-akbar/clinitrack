@@ -71,6 +71,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     return '$hour:$minute $period';
   }
 
+  String _toIsoDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
+  }
+
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -101,6 +107,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       patientId: _selectedPatient!.id,
       patientName: _selectedPatient!.name,
       date: _formatDate(_selectedDate!),
+      dateIso: _toIsoDate(_selectedDate!),
       time: _formatTime(_selectedTime!),
       reason: _reasonController.text.trim(),
       doctor: _doctors[_selectedDoctorIndex],
@@ -133,7 +140,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         body: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
               // ---------- Patient & Reason ----------
               FormSectionCard(

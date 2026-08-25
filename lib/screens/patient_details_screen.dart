@@ -5,6 +5,7 @@ import '../widgets/expandable_record_section.dart';
 import '../providers/patient_provider.dart';
 import 'package:provider/provider.dart';
 import '../providers/prescription_provider.dart';
+import '../providers/appointment_provider.dart';
 
 class PatientDetailsScreen extends StatelessWidget {
   const PatientDetailsScreen({super.key});
@@ -188,9 +189,17 @@ class PatientDetailsScreen extends StatelessWidget {
               );
             },
           ),
-          const ExpandableRecordSection(
-            title: 'Visit History',
-            items: [],
+          Consumer<AppointmentProvider>(
+            builder: (context, appointmentProvider, _) {
+              final items = appointmentProvider
+                  .visitHistoryForPatient(patient.id)
+                  .map((a) => '${a.date} • ${a.time} — ${a.reason} (${a.doctor})')
+                  .toList();
+              return ExpandableRecordSection(
+                title: 'Visit History',
+                items: items,
+              );
+            },
           ),
         ],
       ),
