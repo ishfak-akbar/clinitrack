@@ -15,27 +15,30 @@ CliniTrack is a clean, offline-first mobile application designed for physicians 
   <img src="screenshots/login.jpeg" width="180" alt="Login"/>
   <img src="screenshots/registration.jpeg" width="180" alt="Registration"/>
   <img src="screenshots/dashboard.jpeg" width="180" alt="Dashboard"/>
-  <img src="screenshots/drawer.jpeg" width="180" alt="Navigation Drawer"/>
 </p>
 
 <p align="center">
+  <img src="screenshots/drawer.jpeg" width="180" alt="Navigation Drawer"/>
   <img src="screenshots/patients.jpeg" width="180" alt="Patient List"/>
   <img src="screenshots/addpatient.jpeg" width="180" alt="Add Patient"/>
   <img src="screenshots/appointments.jpeg" width="180" alt="Appointments"/>
-  <img src="screenshots/addAppointment.jpeg" width="180" alt="Add Appointment"/>
-  <img src="screenshots/addPrescription.jpeg" width="180" alt="Add Prescription"/>
 </p>
 
 <p align="center">
+  <img src="screenshots/addAppointment.jpeg" width="180" alt="Add Appointment"/>
+  <img src="screenshots/addPrescription.jpeg" width="180" alt="Add Prescription"/>
   <img src="screenshots/followUp.jpeg" width="180" alt="Follow-ups"/>
   <img src="screenshots/medicine.jpeg" width="180" alt="Medicine List"/>
+</p>
+
+<p align="center">
   <img src="screenshots/medRecord.jpeg" width="180" alt="Medical Record"/>
   <img src="screenshots/ordermeds.jpeg" width="180" alt="Order Medicine"/>
   <img src="screenshots/reports.jpeg" width="180" alt="Reports"/>
+  <img src="screenshots/profile.jpeg" width="180" alt="Profile"/>
 </p>
 
 <p align="center">
-  <img src="screenshots/profile.jpeg" width="180" alt="Profile"/>
   <img src="screenshots/editprofile.jpeg" width="180" alt="Edit Profile"/>
   <img src="screenshots/settings.jpeg" width="180" alt="Settings"/>
 </p>
