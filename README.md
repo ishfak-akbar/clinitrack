@@ -1,174 +1,218 @@
 # CliniTrack
 
-CliniTrack is a Flutter-based clinic management application designed to help healthcare professionals manage daily clinic activities in one place. The application provides an organized interface for managing patients, appointments, medical records, prescriptions, and profile information.
+**Modern Flutter Clinic Management App for Doctors**
 
-> **Note:** CliniTrack is currently a UI-focused project that uses local dummy data and simulated authentication. No backend or real medical database is currently connected.
+CliniTrack is a clean, offline-first mobile application designed for physicians to efficiently manage their clinic operations. From patient records and appointments to prescriptions, medicine inventory, and follow-ups — everything is organized in one beautiful, easy-to-use interface with full light & dark theme support.
+
+---
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/splash_screen.jpeg" width="180" alt="Splash Screen"/>
+  <img src="screenshots/login.jpeg" width="180" alt="Login"/>
+  <img src="screenshots/registration.jpeg" width="180" alt="Registration"/>
+  <img src="screenshots/dashboard.jpeg" width="180" alt="Dashboard"/>
+</p>
+
+<p align="center">
+  <img src="screenshots/drawer.jpeg" width="180" alt="Navigation Drawer"/>
+  <img src="screenshots/patients.jpeg" width="180" alt="Patient List"/>
+  <img src="screenshots/addpatient.jpeg" width="180" alt="Add Patient"/>
+  <img src="screenshots/appointments.jpeg" width="180" alt="Appointments"/>
+</p>
+
+<p align="center">
+  <img src="screenshots/addAppointment.jpeg" width="180" alt="Add Appointment"/>
+  <img src="screenshots/addPrescription.jpeg" width="180" alt="Add Prescription"/>
+  <img src="screenshots/followUp.jpeg" width="180" alt="Follow-ups"/>
+  <img src="screenshots/medicine.jpeg" width="180" alt="Medicine List"/>
+</p>
+
+<p align="center">
+  <img src="screenshots/medRecord.jpeg" width="180" alt="Medical Record"/>
+  <img src="screenshots/ordermeds.jpeg" width="180" alt="Order Medicine"/>
+  <img src="screenshots/reports.jpeg" width="180" alt="Reports"/>
+  <img src="screenshots/profile.jpeg" width="180" alt="Profile"/>
+</p>
+
+<p align="center">
+  <img src="screenshots/editprofile.jpeg" width="180" alt="Edit Profile"/>
+  <img src="screenshots/settings.jpeg" width="180" alt="Settings"/>
+</p>
+
+---
 
 ## Features
 
-### Authentication
-
-- Login and registration screens
-- UI-only authentication
-- Users can access the dashboard regardless of the entered credentials
-- Navigation between Login and Registration screens
+### Authentication & Session
+- Secure login and registration for doctors
+- Persistent session using SharedPreferences
+- Automatic redirect based on login state (Splash screen)
 
 ### Dashboard
-
-The dashboard provides a quick overview of clinic activity, including:
-
-- Total patients
-- Total appointments
-- Total prescriptions
-- Today's appointments
-- Quick access to major sections of the application
+- Personalized greeting
+- Quick statistics cards:
+  - Today’s Appointments
+  - Total Patients
+  - Follow-ups Due
+- Today’s appointment list with quick overview
 
 ### Patient Management
+- Searchable patient list
+- Add new patients with detailed information
+- View complete patient details
+- Expandable medical records section
 
-Users can:
-
-- View and search patients
-- Add new patients
-- Edit patient information
-- View detailed patient profiles
-
-Patient information includes:
-
-- Name and age
-- Gender and contact information
-- Blood group
-- Medical history
-- Allergies
-- Previous visit information
-
-### Appointment Management
-
-Users can manage and view:
-
-- Today's appointments
-- Upcoming appointments
-- Completed appointments
-- Appointment date and time
-- Patient information
-- Reason for visit
-- Appointment status
-
-Appointments for the current day are generated dynamically so the **Today's Appointments** section remains relevant.
-
-### Medical Records
-
-Patient medical information is organized into expandable sections, making records easier to read and navigate.
+### Appointments
+- View all appointments
+- Schedule new appointments
+- Clean appointment cards with date, time & patient info
 
 ### Prescriptions
+- Create and manage prescriptions for patients
+- Easy-to-use prescription form
 
-Users can view and manage prescription information associated with patients.
+### Follow-ups
+- Track pending and upcoming follow-up visits
+- Clear visual indicators for due follow-ups
 
-### Profile
+### Medicine Management
+- Browse medicine inventory
+- Order new medicines
+- View medicine records
 
-The profile section displays:
+### Reports
+- Clinic overview with key metrics
+- Total patients, appointments, and other statistics
 
-- Doctor name and specialty
-- Biography
-- Qualifications and experience
-- Clinic address
-- License number
-- Email and phone number
-- Activity statistics
+### Profile & Settings
+- View and edit doctor profile (name, specialty, license, qualifications, experience, clinic address, bio)
+- Light / Dark mode toggle
+- Clean settings screen
 
-Users can also update their information through the Edit Profile screen.
+### UI / UX
+- Modern teal-based design system
+- Fully responsive light & dark themes
+- Bottom navigation + side drawer
+- Consistent cards, chips, and form sections
+- Floating Action Button for quick actions
 
-### Theme Support
-
-CliniTrack supports both **Light Mode** and **Dark Mode**, using centralized colors and theme-aware components for a consistent experience.
-
-## Dummy Data
-
-The application includes sample data for demonstration:
-
-- **30 Patients**
-- **30 Appointments**
-- Today's appointments
-- Upcoming appointments
-- Completed appointments
-- Sample prescriptions and medical records
-
-All information is dummy data and is intended only to demonstrate the application's functionality.
-
-## State Management and Local Storage
-
-CliniTrack uses:
-
-- **Provider** for state management
-- **SharedPreferences** for local data persistence
-
-Providers manage application data such as authentication, patients, appointments, prescriptions, and theme settings.
+---
 
 ## Tech Stack
 
-- Flutter
-- Dart
-- Provider
-- SharedPreferences
-- Material Design
+| Layer              | Technology                          |
+|--------------------|-------------------------------------|
+| Framework          | Flutter                             |
+| Language           | Dart                                |
+| State Management   | Provider (`ChangeNotifier`)         |
+| Local Storage      | SharedPreferences                   |
+| Architecture       | Feature-based (screens / providers / widgets / utils) |
+| Theming            | Custom light & dark themes          |
 
-## Project Structure
-
-    lib/
-    ├── main.dart
-    ├── models/
-    ├── providers/
-    ├── screens/
-    ├── widgets/
-    └── utils/
+---
 
 ## Getting Started
 
 ### Prerequisites
-
-Make sure you have:
-
-- Flutter SDK
-- Dart SDK
-- Android Studio or VS Code
-- An Android Emulator or physical device
+- Flutter SDK (3.x or higher)
+- Android Studio / VS Code with Flutter & Dart extensions
+- An Android/iOS emulator or physical device
 
 ### Installation
 
-Clone the repository:
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/cliniTrack.git
+cd cliniTrack
 
-    git clone <your-repository-url>
+# 2. Install dependencies
+flutter pub get
 
-Navigate to the project directory:
+# 3. Run the app
+flutter run
 
-    cd clinitrack
+```
 
-Install dependencies:
+## Project Structure
+lib/
+├── main.dart                      # App entry point + MultiProvider setup
+├── providers/
+│   ├── auth_provider.dart         # Login, session & profile
+│   ├── patient_provider.dart      # Patient data
+│   ├── appointment_provider.dart  # Appointments
+│   ├── prescription_provider.dart # Prescriptions
+│   ├── medicine_provider.dart     # Medicines
+│   └── settings_provider.dart     # Theme & settings
+├── screens/
+│   ├── splash_screen.dart
+│   ├── login_screen.dart
+│   ├── registration_screen.dart
+│   ├── dashboard_screen.dart
+│   ├── patient_list_screen.dart
+│   ├── add_patient_screen.dart
+│   ├── patient_details_screen.dart
+│   ├── appointments_screen.dart
+│   ├── add_appointment_screen.dart
+│   ├── add_prescription_screen.dart
+│   ├── follow_up_screen.dart
+│   ├── medicine_list_screen.dart
+│   ├── order_medicine_screen.dart
+│   ├── reports_screen.dart
+│   ├── profile_screen.dart
+│   ├── edit_profile_screen.dart
+│   ├── settings_screen.dart
+│   └── more_screen.dart
+├── widgets/                       # Reusable components
+│   ├── app_scaffold.dart
+│   ├── app_drawer.dart
+│   ├── app_bottom_nav.dart
+│   ├── dashboard_stat_card.dart
+│   ├── patient_list_tile.dart
+│   ├── appointment_list_tile.dart
+│   └── ...
+└── utils/
+├── app_colors.dart            # Color palette
+└── app_theme.dart             # Light & Dark themes
 
-    flutter pub get
 
-Run the application:
+---
 
-    flutter run
+## Screens Overview
 
-## Future Improvements
+| Screen                | Purpose                                      |
+|-----------------------|----------------------------------------------|
+| Splash                | Session check + load all local data          |
+| Login / Registration  | Doctor authentication                        |
+| Dashboard             | Overview + today’s appointments              |
+| Patient List          | Search & browse patients                     |
+| Add / Details Patient | Create & view full patient records           |
+| Appointments          | Manage clinic appointments                   |
+| Add Prescription      | Write prescriptions                          |
+| Follow-up             | Track pending follow-ups                     |
+| Medicine List         | Inventory overview                           |
+| Order Medicine        | Request new stock                            |
+| Reports               | Clinic performance statistics                |
+| Profile               | Doctor information                           |
+| Edit Profile          | Update personal & professional details       |
+| Settings              | Theme toggle and app preferences             |
 
-Possible future improvements include:
+---
 
-- Backend and database integration
-- Real authentication
-- Firebase or REST API integration
-- User roles such as Doctor, Nurse, and Admin
-- Appointment reminders and notifications
-- Advanced search and filtering
-- PDF prescription generation
-- Medical report uploads
-- Analytics and reports
+## Color Palette
 
-## Disclaimer
+- **Primary Teal**: `#0E7C7B`
+- **Success Green**: `#22A06B`
+- **Follow-up / Alert**: `#DC2626`
+- Full light & dark mode support
 
-CliniTrack is an educational and demonstration project. All patient information used in the application is dummy data and should not be used for real medical purposes.
+---
 
-## Author
+## License
 
-**Ishfak Akbar Nahian**  
-Aspiring Software Engineer
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+**Built with Flutter • Designed for real clinic workflows**
