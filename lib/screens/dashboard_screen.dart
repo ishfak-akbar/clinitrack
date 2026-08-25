@@ -7,6 +7,7 @@ import '../widgets/app_add_fab.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/patient_provider.dart';
 import '../widgets/app_scaffold.dart';
+import '../widgets/app_drawer.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -18,8 +19,8 @@ class DashboardScreen extends StatelessWidget {
 
     return AppScaffold(
       extendBody: true,
+      drawer: const AppDrawer(),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         title: const Text('Dashboard'),
         actions: [
           Padding(

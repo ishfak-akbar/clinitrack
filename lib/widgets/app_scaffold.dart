@@ -7,6 +7,7 @@ class AppScaffold extends StatelessWidget {
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Widget? bottomNavigationBar;
+  final Widget? drawer;
   final bool extendBody;
   final bool extendBodyBehindAppBar;
   final Color? backgroundColor;
@@ -18,6 +19,7 @@ class AppScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.bottomNavigationBar,
+    this.drawer,
     this.extendBody = false,
     this.extendBodyBehindAppBar = false,
     this.backgroundColor,
@@ -65,6 +67,7 @@ class AppScaffold extends StatelessWidget {
           extendBodyBehindAppBar: extendBodyBehindAppBar,
           backgroundColor: Colors.transparent,
           appBar: appBar,
+          drawer: drawer,
           floatingActionButton: floatingActionButton,
           floatingActionButtonLocation: floatingActionButtonLocation,
           bottomNavigationBar: bottomNavigationBar,
