@@ -28,8 +28,6 @@ class AppScaffold extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Single continuous gradient behind the ENTIRE scaffold (appBar +
-    // body + bottomNavigationBar together), so there's no seam anywhere.
     return Container(
       width: double.infinity,
       height: double.infinity,

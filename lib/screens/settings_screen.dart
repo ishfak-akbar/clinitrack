@@ -53,18 +53,29 @@ class SettingsScreen extends StatelessWidget {
           _sectionHeader(context, 'GENERAL'),
           Card(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Column(
                 children: [
-                  MoreMenuTile(
-                    icon: Icons.language_outlined,
-                    title: 'Language',
-                    subtitle: 'English',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Language options coming soon')),
-                      );
-                    },
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.language_outlined, color: AppColors.primaryTeal),
+                    title: const Text('Language', style: TextStyle(fontSize: 15, fontWeight: FontWeight(600)),),
+                    subtitle: const Text('Select Language'),
+                    trailing: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: settings.language,
+                        items: const [
+                          DropdownMenuItem(value: 'English', child: Text('English')),
+                          DropdownMenuItem(value: 'Bangla', child: Text('বাংলা')),
+                          DropdownMenuItem(value: 'Hindi', child: Text('हिन्दी')),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            context.read<SettingsProvider>().setLanguage(value);
+                          }
+                        },
+                      ),
+                    ),
                   ),
                   const Divider(),
                   MoreMenuTile(
