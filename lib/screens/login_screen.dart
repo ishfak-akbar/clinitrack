@@ -323,23 +323,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
 
                     const SizedBox(height: 24),
-
                     // Footer
-                    Text(
-                      "Don't have an account? ",
-                      style: theme.textTheme.bodyMedium?.copyWith(fontSize: 14),
-                    ),
-                    const SizedBox(height: 2),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Text(
-                        'Create an account',
-                        style: TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                          color: accent,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Don't have an account?",
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                      ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamed('/register');
+                          },
+                          child: const Text('Register'),
+                        ),
+                      ],
                     ),
                   ],
                 ),

@@ -24,6 +24,7 @@ import 'screens/profile_screen.dart';
 import 'screens/medicine_list_screen.dart';
 import 'screens/order_medicine_screen.dart';
 import 'screens/edit_profile_screen.dart';
+import 'screens/registration_screen.dart';
 
 void main() {
   runApp(
@@ -58,6 +59,7 @@ class CliniTrackApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegistrationScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/add-patient': (context) => const AddPatientScreen(),
         '/patient-list': (context) => const PatientListScreen(),
