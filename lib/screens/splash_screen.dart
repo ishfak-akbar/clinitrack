@@ -49,6 +49,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -77,20 +78,29 @@ class _SplashScreenState extends State<SplashScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 96,
-                  height: 96,
+                  width: 75,
+                  height: 75,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryTeal,
-                    borderRadius: BorderRadius.circular(24),
+                    color: accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(18),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadowColor,
+                        color: accent.withValues(alpha: 0.35),
                         blurRadius: 16,
-                        offset: const Offset(0, 8),
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.favorite_rounded, color: AppColors.cardWhite, size: 44),
+                  padding: const EdgeInsets.all(8),
+                  child: Image.asset(
+                    'assets/cliniTrackIcon.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.local_hospital_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 28),
                 Text('CliniTrack', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineMedium),
