@@ -23,6 +23,7 @@ import 'screens/settings_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/medicine_list_screen.dart';
 import 'screens/order_medicine_screen.dart';
+import 'screens/edit_profile_screen.dart';
 
 void main() {
   runApp(
@@ -68,6 +69,7 @@ class CliniTrackApp extends StatelessWidget {
         '/more': (context) => const MoreScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/edit-profile': (context) => const EditProfileScreen(),
         '/patient-details': (context) => const PatientDetailsScreen(),
         '/medicine-list': (context) => const MedicineListScreen(),
         '/order-medicine': (context) => const OrderMedicineScreen(),

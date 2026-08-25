@@ -1,5 +1,7 @@
 import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../utils/app_colors.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -30,6 +32,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return AppScaffold(
       extendBody: true,
       appBar: AppBar(title: const Text('Profile')),
@@ -44,9 +48,9 @@ class ProfileScreen extends StatelessWidget {
                   backgroundImage: AssetImage('assets/doctor.png'),
                 ),
                 const SizedBox(height: 14),
-                Text('Dr. Ishfak Akbar', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 20)),
+                Text(auth.name, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 20)),
                 const SizedBox(height: 2),
-                Text('General Physician', style: Theme.of(context).textTheme.bodyMedium),
+                Text(auth.specialty, style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
           ),
@@ -57,11 +61,11 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Column(
                 children: [
-                  _infoTile(context, icon: Icons.badge_outlined, label: 'License Number', value: 'MBBS-214578'),
+                  _infoTile(context, icon: Icons.badge_outlined, label: 'License Number', value: auth.licenseNumber),
                   const Divider(),
-                  _infoTile(context, icon: Icons.email_outlined, label: 'Email', value: 'ishfak.akbar@clinic.com'),
+                  _infoTile(context, icon: Icons.email_outlined, label: 'Email', value: auth.email),
                   const Divider(),
-                  _infoTile(context, icon: Icons.phone_outlined, label: 'Phone', value: '01912345678'),
+                  _infoTile(context, icon: Icons.phone_outlined, label: 'Phone', value: auth.phone),
                 ],
               ),
             ),
@@ -70,9 +74,7 @@ class ProfileScreen extends StatelessWidget {
 
           ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Edit Profile coming soon')),
-              );
+              Navigator.of(context).pushNamed('/edit-profile');
             },
             child: const Text('Edit Profile'),
           ),
