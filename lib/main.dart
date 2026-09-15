@@ -1,3 +1,4 @@
+import 'config/supabase_config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/patient_provider.dart';
@@ -26,7 +27,9 @@ import 'screens/order_medicine_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/registration_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseConfig.init();
   runApp(
     MultiProvider(
       providers: [
