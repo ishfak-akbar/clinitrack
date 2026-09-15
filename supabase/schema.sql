@@ -180,3 +180,24 @@ create policy "medicine_orders_owner_all" on public.medicine_orders
 drop policy if exists "follow_ups_owner_all" on public.follow_ups;
 create policy "follow_ups_owner_all" on public.follow_ups
   for all to authenticated using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+
+-- ============ Step 4: auto-create profile on signup ============
+-- Run once in SQL Editor. Requires email provider enabled in Dashboard > Auth.
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, full_name)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'full_name', '')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
