@@ -31,14 +31,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    await context.read<AuthProvider>().login(
+    final ok = await context.read<AuthProvider>().login(
       email: _emailController.text.trim(),
-      role: 'Doctor',
+      password: _passwordController.text,
     );
 
     if (!mounted) return;
 
     setState(() => _isLoading = false);
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.read<AuthProvider>().errorMessage.isEmpty
+              ? 'Sign in failed'
+              : context.read<AuthProvider>().errorMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     Navigator.of(context).pushReplacementNamed('/dashboard');
   }
 
