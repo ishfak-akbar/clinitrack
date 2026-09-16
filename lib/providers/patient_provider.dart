@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/supabase_config.dart';
+
 class Patient {
-  final String id;
+  final String id; // uuid from Supabase, or local millis key in fallback mode
   final String name;
   final String age;
   final String gender;
@@ -12,6 +14,11 @@ class Patient {
   final String medicalHistory;
   final List<String> allergies;
   final String lastVisit;
+
+  // Step 9/12: backend identity + timestamps (null in local fallback mode).
+  final String? ownerId;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   Patient({
     required this.id,
@@ -23,6 +30,9 @@ class Patient {
     required this.medicalHistory,
     required this.allergies,
     required this.lastVisit,
+    this.ownerId,
+    this.createdAt,
+    this.updatedAt,
   });
 
   Map<String, dynamic> toMap() => {
@@ -35,89 +45,241 @@ class Patient {
     'medicalHistory': medicalHistory,
     'allergies': allergies,
     'lastVisit': lastVisit,
+    'ownerId': ownerId,
+    'createdAt': createdAt?.toIso8601String(),
+    'updatedAt': updatedAt?.toIso8601String(),
   };
 
   factory Patient.fromMap(Map<String, dynamic> map) => Patient(
     id: map['id'] as String,
-    name: map['name'] as String,
-    age: map['age'] as String,
-    gender: map['gender'] as String,
-    contact: map['contact'] as String,
-    bloodGroup: map['bloodGroup'] as String,
-    medicalHistory: map['medicalHistory'] as String,
-    allergies: List<String>.from(map['allergies'] as List),
-    lastVisit: map['lastVisit'] as String,
+    name: (map['name'] ?? '') as String,
+    age: (map['age'] ?? '') as String,
+    gender: (map['gender'] ?? '') as String,
+    contact: (map['contact'] ?? '') as String,
+    bloodGroup: (map['bloodGroup'] ?? '') as String,
+    medicalHistory: (map['medicalHistory'] ?? '') as String,
+    allergies: map['allergies'] == null
+        ? const []
+        : List<String>.from(map['allergies'] as List),
+    lastVisit: (map['lastVisit'] ?? '') as String,
+    ownerId: map['ownerId'] as String?,
+    createdAt: map['createdAt'] == null
+        ? null
+        : DateTime.tryParse(map['createdAt'] as String),
+    updatedAt: map['updatedAt'] == null
+        ? null
+        : DateTime.tryParse(map['updatedAt'] as String),
   );
+
+  /// Row from `public.patients` -> UI model.
+  /// DB types: age int?, last_visit_date date?, allergies text[].
+  factory Patient.fromSupabase(Map<String, dynamic> row) {
+    final rawDate = row['last_visit_date'] as String?;
+    DateTime? parsedDate;
+    if (rawDate != null && rawDate.isNotEmpty) {
+      parsedDate = DateTime.tryParse(rawDate);
+    }
+    return Patient(
+      id: row['id'] as String,
+      ownerId: row['owner_id'] as String?,
+      name: (row['name'] ?? '') as String,
+      age: row['age'] == null ? '' : '${row['age']}',
+      gender: (row['gender'] ?? '') as String,
+      contact: (row['contact'] ?? '') as String,
+      bloodGroup: (row['blood_group'] ?? '') as String,
+      medicalHistory: (row['medical_history'] ?? '') as String,
+      allergies: row['allergies'] == null
+          ? const []
+          : List<String>.from(row['allergies'] as List),
+      lastVisit: parsedDate == null ? '' : formatDisplayDate(parsedDate),
+      createdAt: row['created_at'] == null
+          ? null
+          : DateTime.tryParse(row['created_at'] as String),
+      updatedAt: row['updated_at'] == null
+          ? null
+          : DateTime.tryParse(row['updated_at'] as String),
+    );
+  }
+
+  /// UI model -> `public.patients` insert payload.
+  /// `id` omitted so Postgres assigns `gen_random_uuid()`.
+  /// `ownerId` must be the signed-in user's id (RLS enforces it too).
+  Map<String, dynamic> toSupabase({required String ownerId}) {
+    final parsedAge = int.tryParse(age.trim());
+    final cleanAllergies = allergies.where((a) => a != 'None').toList();
+    final today = DateTime.now();
+    final todayIso =
+        '${today.year.toString().padLeft(4, '0')}-'
+        '${today.month.toString().padLeft(2, '0')}-'
+        '${today.day.toString().padLeft(2, '0')}';
+    return {
+      'owner_id': ownerId,
+      'name': name.trim(),
+      'age': parsedAge,
+      'gender': gender.isEmpty ? null : gender,
+      'contact': contact.trim().isEmpty ? null : contact.trim(),
+      'blood_group': bloodGroup.isEmpty ? null : bloodGroup,
+      'medical_history': medicalHistory,
+      'allergies': cleanAllergies,
+      'last_visit_date': todayIso,
+    };
+  }
+
+  static String formatDisplayDate(DateTime date) {
+    const months = [
+      'January', 'February', 'March', 'April',
+      'May', 'June', 'July', 'August',
+      'September', 'October', 'November', 'December',
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
 }
 
 class PatientProvider extends ChangeNotifier {
   static const String _key = 'patients_list';
 
   List<Patient> _patients = [];
+  bool _isLoading = false;
+  String _errorMessage = '';
 
   List<Patient> get patients => _patients;
+  bool get isLoading => _isLoading;
+  String get errorMessage => _errorMessage;
 
-  static final List<Patient> _seedPatients = [
-    Patient(id: 'seed-1', name: 'John Doe', age: '28', gender: 'Male', contact: '01710000001', bloodGroup: 'O+', medicalHistory: 'No major illnesses.', allergies: const ['Penicillin'], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-2', name: 'Emily Smith', age: '32', gender: 'Female', contact: '01710000002', bloodGroup: 'A+', medicalHistory: 'Seasonal allergies.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-3', name: 'Michael Brown', age: '45', gender: 'Male', contact: '01710000003', bloodGroup: 'B+', medicalHistory: 'Hypertension.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-4', name: 'Sarah Johnson', age: '29', gender: 'Female', contact: '01710000004', bloodGroup: 'AB+', medicalHistory: 'No major illnesses.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-5', name: 'David Wilson', age: '50', gender: 'Male', contact: '01710000005', bloodGroup: 'O-', medicalHistory: 'Type 2 diabetes.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-6', name: 'Olivia Davis', age: '26', gender: 'Female', contact: '01710000006', bloodGroup: 'A-', medicalHistory: 'Migraine.', allergies: const ['Dust'], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-7', name: 'James Miller', age: '38', gender: 'Male', contact: '01710000007', bloodGroup: 'B+', medicalHistory: 'Asthma.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-8', name: 'Sophia Anderson', age: '31', gender: 'Female', contact: '01710000008', bloodGroup: 'O+', medicalHistory: 'Thyroid condition.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-9', name: 'Daniel Taylor', age: '42', gender: 'Male', contact: '01710000009', bloodGroup: 'AB-', medicalHistory: 'High cholesterol.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-10', name: 'Isabella Thomas', age: '24', gender: 'Female', contact: '01710000010', bloodGroup: 'A+', medicalHistory: 'No significant history.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-11', name: 'Robert Moore', age: '55', gender: 'Male', contact: '01710000011', bloodGroup: 'O+', medicalHistory: 'Hypertension.', allergies: const ['Aspirin'], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-12', name: 'Mia Jackson', age: '27', gender: 'Female', contact: '01710000012', bloodGroup: 'B-', medicalHistory: 'Anemia.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-13', name: 'William Martin', age: '48', gender: 'Male', contact: '01710000013', bloodGroup: 'A-', medicalHistory: 'Diabetes.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-14', name: 'Charlotte Lee', age: '35', gender: 'Female', contact: '01710000014', bloodGroup: 'O-', medicalHistory: 'No major illnesses.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-15', name: 'Benjamin Harris', age: '40', gender: 'Male', contact: '01710000015', bloodGroup: 'B+', medicalHistory: 'Back pain.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-16', name: 'Amelia Clark', age: '33', gender: 'Female', contact: '01710000016', bloodGroup: 'AB+', medicalHistory: 'Migraine.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-17', name: 'Lucas Lewis', age: '52', gender: 'Male', contact: '01710000017', bloodGroup: 'O+', medicalHistory: 'Heart disease.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-18', name: 'Harper Walker', age: '30', gender: 'Female', contact: '01710000018', bloodGroup: 'A+', medicalHistory: 'Seasonal allergies.', allergies: const ['Pollen'], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-19', name: 'Henry Hall', age: '60', gender: 'Male', contact: '01710000019', bloodGroup: 'B-', medicalHistory: 'Arthritis.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-20', name: 'Evelyn Allen', age: '41', gender: 'Female', contact: '01710000020', bloodGroup: 'O-', medicalHistory: 'Hypertension.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-21', name: 'Alexander Young', age: '36', gender: 'Male', contact: '01710000021', bloodGroup: 'AB+', medicalHistory: 'No major illnesses.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-22', name: 'Abigail King', age: '28', gender: 'Female', contact: '01710000022', bloodGroup: 'A-', medicalHistory: 'Asthma.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-23', name: 'Matthew Wright', age: '47', gender: 'Male', contact: '01710000023', bloodGroup: 'O+', medicalHistory: 'Diabetes.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-24', name: 'Ella Scott', age: '34', gender: 'Female', contact: '01710000024', bloodGroup: 'B+', medicalHistory: 'No significant history.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-25', name: 'Joseph Green', age: '57', gender: 'Male', contact: '01710000025', bloodGroup: 'AB-', medicalHistory: 'Hypertension.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-26', name: 'Grace Baker', age: '39', gender: 'Female', contact: '01710000026', bloodGroup: 'O+', medicalHistory: 'Thyroid condition.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-27', name: 'Samuel Adams', age: '44', gender: 'Male', contact: '01710000027', bloodGroup: 'A+', medicalHistory: 'High cholesterol.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-28', name: 'Chloe Nelson', age: '23', gender: 'Female', contact: '01710000028', bloodGroup: 'B-', medicalHistory: 'Migraine.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-29', name: 'Christopher Carter', age: '51', gender: 'Male', contact: '01710000029', bloodGroup: 'O-', medicalHistory: 'Arthritis.', allergies: const [], lastVisit: '20 August 2026'),
-    Patient(id: 'seed-30', name: 'Lily Mitchell', age: '37', gender: 'Female', contact: '01710000030', bloodGroup: 'AB+', medicalHistory: 'No major illnesses.', allergies: const [], lastVisit: '20 August 2026'),
-  ];
+  bool get useBackend => SupabaseConfig.isConfigured;
+  String? get _userId => useBackend
+      ? SupabaseConfig.client.auth.currentUser?.id
+      : null;
 
   Future<void> loadPatients() async {
-    final prefs = await SharedPreferences.getInstance();
-    final rawList = prefs.getStringList(_key);
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
 
-    if (rawList == null) {
-      _patients = List.from(_seedPatients);
-      await _persist();
-    } else {
-      _patients = rawList
-          .map((raw) => Patient.fromMap(jsonDecode(raw) as Map<String, dynamic>))
-          .toList();
+    try {
+      if (useBackend) {
+        await _loadFromSupabase();
+      } else {
+        await _loadLocal();
+      }
+    } catch (_) {
+      _errorMessage = 'Could not load patients. Check connection and try again.';
     }
+
+    _isLoading = false;
     notifyListeners();
   }
 
-  Future<void> addPatient(Patient patient) async {
-    _patients.insert(0, patient);
-    notifyListeners();
-    await _persist();
+  Future<void> _loadFromSupabase() async {
+    final userId = _userId;
+    if (userId == null) {
+      _patients = [];
+      return;
+    }
+    final rows = await SupabaseConfig.client
+        .from('patients')
+        .select()
+        .order('created_at', ascending: false);
+    _patients = (rows as List)
+        .map((r) => Patient.fromSupabase(r as Map<String, dynamic>))
+        .toList();
   }
 
-  Future<void> deletePatient(String id) async {
+  /// Local fallback when Supabase is not configured (fresh clone / offline).
+  /// Starts empty — the old 30 demo seeds were dropped in Step 9.
+  Future<void> _loadLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rawList = prefs.getStringList(_key) ?? [];
+    _patients = rawList
+        .map((raw) => Patient.fromMap(jsonDecode(raw) as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<bool> addPatient(Patient patient) async {
+    _errorMessage = '';
+    if (useBackend) {
+      final userId = _userId;
+      if (userId == null) {
+        _errorMessage = 'Please sign in again to add a patient.';
+        notifyListeners();
+        return false;
+      }
+      try {
+        final row = await SupabaseConfig.client
+            .from('patients')
+            .insert(patient.toSupabase(ownerId: userId))
+            .select()
+            .single();
+        _patients.insert(
+          0,
+          Patient.fromSupabase(row),
+        );
+        notifyListeners();
+        return true;
+      } catch (_) {
+        _errorMessage = 'Could not save patient. Check connection and try again.';
+        notifyListeners();
+        return false;
+      }
+    }
+
+    final local = Patient(
+      id: patient.id.isEmpty
+          ? DateTime.now().millisecondsSinceEpoch.toString()
+          : patient.id,
+      name: patient.name,
+      age: patient.age,
+      gender: patient.gender,
+      contact: patient.contact,
+      bloodGroup: patient.bloodGroup,
+      medicalHistory: patient.medicalHistory,
+      allergies: patient.allergies,
+      lastVisit: patient.lastVisit.isEmpty
+          ? Patient.formatDisplayDate(DateTime.now())
+          : patient.lastVisit,
+    );
+    _patients.insert(0, local);
+    notifyListeners();
+    await _persistLocal();
+    return true;
+  }
+
+  Future<bool> deletePatient(String id) async {
+    _errorMessage = '';
+    if (useBackend) {
+      final userId = _userId;
+      if (userId == null) {
+        _errorMessage = 'Please sign in again.';
+        notifyListeners();
+        return false;
+      }
+      try {
+        await SupabaseConfig.client.from('patients').delete().eq('id', id);
+        _patients.removeWhere((p) => p.id == id);
+        notifyListeners();
+        return true;
+      } catch (_) {
+        _errorMessage = 'Could not delete patient. Try again.';
+        notifyListeners();
+        return false;
+      }
+    }
+
     _patients.removeWhere((p) => p.id == id);
     notifyListeners();
-    await _persist();
+    await _persistLocal();
+    return true;
   }
 
-  Future<void> _persist() async {
+  /// Clears in-memory list (e.g. on logout so the next account
+  /// never briefly sees the previous account's patients).
+  void clearCache() {
+    _patients = [];
+    _errorMessage = '';
+    notifyListeners();
+  }
+
+  Future<void> _persistLocal() async {
     final prefs = await SharedPreferences.getInstance();
     final rawList = _patients.map((p) => jsonEncode(p.toMap())).toList();
     await prefs.setStringList(_key, rawList);
