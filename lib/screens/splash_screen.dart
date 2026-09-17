@@ -8,6 +8,7 @@ import '../providers/appointment_provider.dart';
 import '../providers/prescription_provider.dart';
 import '../providers/medicine_provider.dart';
 import '../providers/follow_up_provider.dart';
+import '../providers/stats_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -40,6 +41,19 @@ class _SplashScreenState extends State<SplashScreen> {
       context.read<FollowUpProvider>().loadFollowUps(),
       Future.delayed(const Duration(seconds: 2)),
     ]);
+
+    // Step 13: prefetch server-side counts so dashboard/reports open
+    // with real numbers. Non-fatal — screens retry on pull-to-refresh.
+    if (mounted) {
+      await context.read<StatsProvider>().refresh(
+            patients: context.read<PatientProvider>().patients,
+            appointments: context.read<AppointmentProvider>().appointments,
+            prescriptions:
+                context.read<PrescriptionProvider>().prescriptions,
+            followUps: context.read<FollowUpProvider>().followUps,
+            medicines: context.read<MedicineProvider>().medicines,
+          );
+    }
 
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(

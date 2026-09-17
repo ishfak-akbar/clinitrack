@@ -1,134 +1,270 @@
 import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/stats_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/dashboard_stat_card.dart';
+import '../providers/appointment_provider.dart';
+import '../providers/follow_up_provider.dart';
+import '../providers/medicine_provider.dart';
+import '../providers/patient_provider.dart';
+import '../providers/prescription_provider.dart';
+import '../providers/stats_provider.dart';
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
   @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Stats are prefetched in splash; refresh on open so numbers are fresh.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+  }
+
+  Future<void> _refresh() async {
+    if (!mounted) return;
+    await context.read<StatsProvider>().refresh(
+          patients: context.read<PatientProvider>().patients,
+          appointments: context.read<AppointmentProvider>().appointments,
+          prescriptions: context.read<PrescriptionProvider>().prescriptions,
+          followUps: context.read<FollowUpProvider>().followUps,
+          medicines: context.read<MedicineProvider>().medicines,
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final statsState = context.watch<StatsProvider>();
+    final stats = statsState.stats;
+
     return AppScaffold(
       extendBody: true,
       appBar: AppBar(title: const Text('Reports')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Clinic Overview', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-
-          Row(
-            children: const [
-              Expanded(
-                child: DashboardStatCard(
-                  icon: Icons.people_outline,
-                  label: 'Total Patients',
-                  value: '245',
-                  iconColor: AppColors.primaryTeal,
-                  lightIconBackground: AppColors.primaryTealLight,
-                  lightCardBackground: Color(0xFFF2FBF6),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: DashboardStatCard(
-                  icon: Icons.event_note_outlined,
-                  label: 'Appointments',
-                  value: '58',
-                  iconColor: AppColors.successGreen,
-                  lightIconBackground: Color(0xFFE3F6ED),
-                  lightCardBackground: Color(0xFFF2FBF6),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: const [
-              Expanded(
-                child: DashboardStatCard(
-                  icon: Icons.medication_outlined,
-                  label: 'Prescriptions',
-                  value: '132',
-                  iconColor: AppColors.warningAmber,
-                  lightIconBackground: Color(0xFFFDF0DC),
-                  lightCardBackground: Color(0xFFFFF8EE),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: DashboardStatCard(
-                  icon: Icons.schedule_outlined,
-                  label: 'Follow-ups Due',
-                  value: '12',
-                  iconColor: AppColors.followUpOrange,
-                  lightIconBackground: AppColors.followUpOrangeLight,
-                  lightCardBackground: AppColors.followUpOrangeCard,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          Text('Patient Demographics', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _demographicRow(context, label: 'Male', value: '138', percent: 0.56),
-                  const SizedBox(height: 14),
-                  _demographicRow(context, label: 'Female', value: '102', percent: 0.42),
-                  const SizedBox(height: 14),
-                  _demographicRow(context, label: 'Other', value: '5', percent: 0.02),
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: statsState.isLoading && stats.totalPatients == 0
+            ? ListView(
+                padding: const EdgeInsets.all(32),
+                children: const [
+                  Center(child: CircularProgressIndicator()),
                 ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          Text('Blood Group Distribution', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
+              )
+            : ListView(
+                padding: const EdgeInsets.all(16),
                 children: [
+                  if (statsState.errorMessage.isNotEmpty)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.cloud_off_outlined,
+                                color: AppColors.errorRed),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                statsState.errorMessage,
+                                style:
+                                    Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _refresh,
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (statsState.errorMessage.isNotEmpty)
+                    const SizedBox(height: 12),
+                  Text('Clinic Overview',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 12),
+
                   Row(
-                    children: const [
-                      Expanded(child: _BloodGroupChip(label: 'A+', count: '48')),
-                      SizedBox(width: 10),
-                      Expanded(child: _BloodGroupChip(label: 'A-', count: '12')),
-                      SizedBox(width: 10),
-                      Expanded(child: _BloodGroupChip(label: 'B+', count: '56')),
-                      SizedBox(width: 10),
-                      Expanded(child: _BloodGroupChip(label: 'B-', count: '9')),
+                    children: [
+                      Expanded(
+                        child: DashboardStatCard(
+                          icon: Icons.people_outline,
+                          label: 'Total Patients',
+                          value: '${stats.totalPatients}',
+                          iconColor: AppColors.primaryTeal,
+                          lightIconBackground: AppColors.primaryTealLight,
+                          lightCardBackground: const Color(0xFFF2FBF6),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DashboardStatCard(
+                          icon: Icons.event_note_outlined,
+                          label: 'Appointments',
+                          value: '${stats.totalAppointments}',
+                          iconColor: AppColors.successGreen,
+                          lightIconBackground: const Color(0xFFE3F6ED),
+                          lightCardBackground: const Color(0xFFF2FBF6),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Row(
-                    children: const [
-                      Expanded(child: _BloodGroupChip(label: 'O+', count: '78')),
-                      SizedBox(width: 10),
-                      Expanded(child: _BloodGroupChip(label: 'O-', count: '14')),
-                      SizedBox(width: 10),
-                      Expanded(child: _BloodGroupChip(label: 'AB+', count: '21')),
-                      SizedBox(width: 10),
-                      Expanded(child: _BloodGroupChip(label: 'AB-', count: '7')),
+                    children: [
+                      Expanded(
+                        child: DashboardStatCard(
+                          icon: Icons.medication_outlined,
+                          label: 'Prescriptions',
+                          value: '${stats.totalPrescriptions}',
+                          iconColor: AppColors.warningAmber,
+                          lightIconBackground: const Color(0xFFFDF0DC),
+                          lightCardBackground: const Color(0xFFFFF8EE),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DashboardStatCard(
+                          icon: Icons.schedule_outlined,
+                          label: 'Follow-ups Due',
+                          value: '${stats.followUpsDue}',
+                          iconColor: AppColors.followUpOrange,
+                          lightIconBackground:
+                              AppColors.followUpOrangeLight,
+                          lightCardBackground:
+                              AppColors.followUpOrangeCard,
+                        ),
+                      ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DashboardStatCard(
+                          icon: Icons.calendar_today_outlined,
+                          label: "Today's\nAppointments",
+                          value: '${stats.todayAppointments}',
+                          iconColor: const Color(0xFF3B82F6),
+                          lightIconBackground: const Color(0xFFE0EBFD),
+                          lightCardBackground: const Color(0xFFF3F8FF),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DashboardStatCard(
+                          icon: Icons.inventory_2_outlined,
+                          label: 'Low\nStock',
+                          value: '${stats.lowStockMedicines}',
+                          iconColor: AppColors.errorRed,
+                          lightIconBackground: const Color(0xFFFDE7E7),
+                          lightCardBackground: const Color(0xFFFFF3F3),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  Text('Patient Demographics',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 12),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _demographicRow(
+                            context,
+                            label: 'Male',
+                            value: '${stats.genderCounts['Male'] ?? 0}',
+                            percent: _percent(
+                                stats.genderCounts['Male'] ?? 0,
+                                stats.totalByGender),
+                          ),
+                          const SizedBox(height: 14),
+                          _demographicRow(
+                            context,
+                            label: 'Female',
+                            value: '${stats.genderCounts['Female'] ?? 0}',
+                            percent: _percent(
+                                stats.genderCounts['Female'] ?? 0,
+                                stats.totalByGender),
+                          ),
+                          const SizedBox(height: 14),
+                          _demographicRow(
+                            context,
+                            label: 'Other',
+                            value: '${stats.genderCounts['Other'] ?? 0}',
+                            percent: _percent(
+                                stats.genderCounts['Other'] ?? 0,
+                                stats.totalByGender),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  Text('Blood Group Distribution',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 12),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              for (var i = 0; i < 4; i++) ...[
+                                if (i > 0) const SizedBox(width: 10),
+                                Expanded(
+                                  child: _BloodGroupChip(
+                                    label: StatsService.bloodGroups[i],
+                                    count:
+                                        '${stats.bloodGroupCounts[StatsService.bloodGroups[i]] ?? 0}',
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              for (var i = 4; i < 8; i++) ...[
+                                if (i > 4) const SizedBox(width: 10),
+                                Expanded(
+                                  child: _BloodGroupChip(
+                                    label: StatsService.bloodGroups[i],
+                                    count:
+                                        '${stats.bloodGroupCounts[StatsService.bloodGroups[i]] ?? 0}',
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
       ),
     );
   }
 
-  Widget _demographicRow(BuildContext context, {required String label, required String value, required double percent}) {
+  double _percent(int part, int total) {
+    if (total <= 0) return 0;
+    return (part / total).clamp(0.0, 1.0);
+  }
+
+  Widget _demographicRow(BuildContext context,
+      {required String label,
+      required String value,
+      required double percent}) {
     return Row(
       children: [
         SizedBox(
@@ -142,7 +278,8 @@ class ReportsScreen extends StatelessWidget {
               value: percent,
               minHeight: 10,
               backgroundColor: AppColors.borderGray,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryTeal),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.primaryTeal),
             ),
           ),
         ),
