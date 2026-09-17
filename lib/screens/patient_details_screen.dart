@@ -1,5 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:clinitrack/widgets/app_scaffold.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/expandable_record_section.dart';
 import '../providers/patient_provider.dart';
@@ -201,7 +206,265 @@ class PatientDetailsScreen extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(height: 16),
+
+          // ---------- Attachments (Step 16: Supabase Storage) ----------
+          Text('Attachments', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          _AttachmentsSection(patient: patient),
+          const SizedBox(height: 16),
         ],
+      ),
+    );
+  }
+}
+
+/// Step 16: patient files in the private `attachments` bucket
+/// (`attachments/{uid}/{patientId}/{file}`), opened via signed URLs.
+class _AttachmentsSection extends StatefulWidget {
+  final Patient patient;
+
+  const _AttachmentsSection({required this.patient});
+
+  @override
+  State<_AttachmentsSection> createState() => _AttachmentsSectionState();
+}
+
+class _AttachmentsSectionState extends State<_AttachmentsSection> {
+  List<String> _files = [];
+  bool _isLoading = true;
+  bool _isUploading = false;
+  String _error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (!StorageService.useBackend) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+    try {
+      final files =
+          await StorageService.listAttachments(widget.patient.id);
+      if (!mounted) return;
+      setState(() {
+        _files = files;
+        _isLoading = false;
+      });
+    } on StorageFailure catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _upload() async {
+    if (_isUploading) return;
+    final picked = await FilePicker.pickFiles();
+    if (!mounted) return;
+    if (picked.isEmpty) return;
+    final file = picked.single;
+    Uint8List bytes;
+    try {
+      bytes = await file.readAsBytes();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not read that file')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    if (bytes.length > 10 * 1024 * 1024) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('File must be under 10 MB')),
+      );
+      return;
+    }
+
+    setState(() => _isUploading = true);
+    try {
+      final stored = await StorageService.uploadAttachment(
+        patientId: widget.patient.id,
+        fileName: file.name,
+        bytes: bytes,
+      );
+      if (!mounted) return;
+      setState(() {
+        _files = [..._files, stored];
+        _isUploading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('File uploaded successfully')),
+      );
+    } on StorageFailure catch (e) {
+      if (!mounted) return;
+      setState(() => _isUploading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    }
+  }
+
+  Future<void> _open(String name) async {
+    try {
+      final url = await StorageService.attachmentUrl(
+        widget.patient.id,
+        name,
+      );
+      final launched = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open file')),
+        );
+      }
+    } on StorageFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    }
+  }
+
+  Future<void> _delete(String name) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete file'),
+        content: Text('Delete "$name"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorRed),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await StorageService.deleteAttachment(widget.patient.id, name);
+      if (!mounted) return;
+      setState(() => _files = _files.where((f) => f != name).toList());
+    } on StorageFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    }
+  }
+
+  IconData _iconFor(String name) {
+    final ext = name.split('.').last.toLowerCase();
+    return switch (ext) {
+      'pdf' => Icons.picture_as_pdf_outlined,
+      'jpg' || 'jpeg' || 'png' || 'gif' || 'webp' => Icons.image_outlined,
+      _ => Icons.insert_drive_file_outlined,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!StorageService.useBackend) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'File attachments need Supabase configured.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.all(20),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.cloud_off_outlined,
+                        color: AppColors.errorRed),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_error)),
+                    TextButton(
+                      onPressed: _load,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            else if (_files.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'No files yet. Upload reports, scans or prescriptions.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else
+              for (final name in _files)
+                ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 8),
+                  leading: Icon(_iconFor(name),
+                      color: AppColors.primaryTeal),
+                  title: Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline,
+                        color: AppColors.errorRed),
+                    onPressed: () => _delete(name),
+                  ),
+                  onTap: () => _open(name),
+                ),
+            const Divider(),
+            TextButton.icon(
+              onPressed: _isUploading ? null : _upload,
+              icon: _isUploading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child:
+                          CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.upload_file_outlined),
+              label: Text(
+                  _isUploading ? 'Uploading…' : 'Upload file'),
+            ),
+          ],
+        ),
       ),
     );
   }

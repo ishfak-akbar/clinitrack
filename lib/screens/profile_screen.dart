@@ -1,11 +1,172 @@
 import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/patient_provider.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/prescription_provider.dart';
+import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
+
+/// Step 16: tappable avatar — gallery/camera pick, Storage upload,
+/// URL persisted to `profiles.avatar_url`.
+class _ProfileAvatar extends StatefulWidget {
+  const _ProfileAvatar();
+
+  @override
+  State<_ProfileAvatar> createState() => _ProfileAvatarState();
+}
+
+class _ProfileAvatarState extends State<_ProfileAvatar> {
+  bool _uploading = false;
+
+  Widget _image(String url) {
+    if (url.isEmpty) {
+      return Image.asset('assets/doctor.png', fit: BoxFit.cover);
+    }
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) =>
+          Image.asset('assets/doctor.png', fit: BoxFit.cover),
+    );
+  }
+
+  Future<void> _pick(ImageSource source) async {
+    if (!StorageService.useBackend) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Photo upload needs Supabase configured.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    final file = await ImagePicker().pickImage(
+      source: source,
+      maxWidth: 512,
+      imageQuality: 80,
+    );
+    if (file == null || !mounted) return;
+
+    setState(() => _uploading = true);
+    try {
+      final bytes = await file.readAsBytes();
+      final url = await StorageService.uploadAvatar(bytes);
+      if (!mounted) return;
+      final ok = await context.read<AuthProvider>().updateAvatarUrl(url);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ok
+              ? 'Profile photo updated'
+              : context.read<AuthProvider>().errorMessage.isEmpty
+                  ? 'Photo uploaded, profile sync failed.'
+                  : context.read<AuthProvider>().errorMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } on StorageFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  void _showSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from gallery'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _pick(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Take a photo'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _pick(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final url = context.watch<AuthProvider>().avatarUrl;
+
+    return GestureDetector(
+      onTap: _uploading ? null : _showSourceSheet,
+      child: Stack(
+        children: [
+          ClipOval(
+            child: SizedBox(
+              width: 96,
+              height: 96,
+              child: _image(url),
+            ),
+          ),
+          if (_uploading)
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryTeal,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: const Icon(
+                  Icons.camera_alt_outlined,
+                  size: 16,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -150,10 +311,7 @@ class ProfileScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                const CircleAvatar(
-                  radius: 48,
-                  backgroundImage: AssetImage('assets/doctor.png'),
-                ),
+                const _ProfileAvatar(),
                 const SizedBox(height: 14),
                 Text(
                   auth.name,

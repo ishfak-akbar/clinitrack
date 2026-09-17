@@ -19,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   static const String _keyExperienceYears = 'user_experience_years';
   static const String _keyClinicAddress = 'user_clinic_address';
   static const String _keyBio = 'user_bio';
+  static const String _keyAvatarUrl = 'user_avatar_url';
   static const String _keyMemberSince = 'user_member_since';
 
   bool _isLoggedIn = false;
@@ -35,6 +36,7 @@ class AuthProvider extends ChangeNotifier {
   String _experienceYears = '5';
   String _clinicAddress = 'Zindabazar, Sylhet';
   String _bio = '';
+  String _avatarUrl = '';
   String _memberSince = '';
 
   bool get isLoggedIn => _isLoggedIn;
@@ -51,6 +53,7 @@ class AuthProvider extends ChangeNotifier {
   String get experienceYears => _experienceYears;
   String get clinicAddress => _clinicAddress;
   String get bio => _bio;
+  String get avatarUrl => _avatarUrl;
   String get memberSince => _memberSince;
 
   bool get useBackend => _repo.useBackend;
@@ -98,6 +101,7 @@ class AuthProvider extends ChangeNotifier {
           (row['experience_years'] as String?) ?? _experienceYears;
       _clinicAddress = (row['clinic_address'] as String?) ?? _clinicAddress;
       _bio = (row['bio'] as String?) ?? _bio;
+      _avatarUrl = (row['avatar_url'] as String?) ?? _avatarUrl;
       if (_email.isEmpty) _email = (row['email'] as String?) ?? '';
     }
     await _cacheToPrefs();
@@ -116,6 +120,7 @@ class AuthProvider extends ChangeNotifier {
     _experienceYears = prefs.getString(_keyExperienceYears) ?? _experienceYears;
     _clinicAddress = prefs.getString(_keyClinicAddress) ?? _clinicAddress;
     _bio = prefs.getString(_keyBio) ?? _bio;
+    _avatarUrl = prefs.getString(_keyAvatarUrl) ?? _avatarUrl;
 
     _memberSince = prefs.getString(_keyMemberSince) ?? '';
     if (_memberSince.isEmpty) {
@@ -263,6 +268,25 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Step 16: persists the Storage avatar URL to `profiles.avatar_url`.
+  /// Returns true on success, false on failure (see [errorMessage]).
+  Future<bool> updateAvatarUrl(String url) async {
+    _avatarUrl = url;
+    notifyListeners();
+    await _cacheToPrefs();
+
+    if (!useBackend) return true;
+    if (_repo.userId == null) return true;
+    try {
+      await _repo.updateProfile({'avatar_url': url});
+      return true;
+    } catch (_) {
+      _errorMessage = 'Photo uploaded, profile sync failed.';
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> _cacheToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyIsLoggedIn, _isLoggedIn);
@@ -276,6 +300,7 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString(_keyExperienceYears, _experienceYears);
     await prefs.setString(_keyClinicAddress, _clinicAddress);
     await prefs.setString(_keyBio, _bio);
+    await prefs.setString(_keyAvatarUrl, _avatarUrl);
     if (_memberSince.isEmpty) {
       _memberSince = _formatDate(DateTime.now());
     }
