@@ -14,6 +14,7 @@ import '../providers/prescription_provider.dart';
 import '../providers/stats_provider.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/list_states.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -56,7 +57,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stats = context.watch<StatsProvider>().stats;
+    final statsState = context.watch<StatsProvider>();
+    final stats = statsState.stats;
     final doctorName = context.watch<AuthProvider>().name;
     final appointments = context.watch<AppointmentProvider>().appointments;
 
@@ -91,6 +93,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _greeting(doctorName),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
+            if (statsState.errorMessage.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ListErrorBanner(
+                message: statsState.errorMessage,
+                onRetry: _refreshStats,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+              ),
+            ],
             const SizedBox(height: 16),
 
             // ---------- Stat cards (Step 13: server-side counts) ----------

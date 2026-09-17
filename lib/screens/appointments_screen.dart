@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/app_add_fab.dart';
 import '../widgets/appointment_list_tile.dart';
+import '../widgets/list_states.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/patient_provider.dart';
 
@@ -37,10 +38,19 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     );
   }
 
+  String get _emptyMessage => switch (_filter) {
+        FilterOption.scheduled => 'No scheduled appointments',
+        FilterOption.completed => 'No completed appointments',
+        FilterOption.all => 'No appointments yet',
+      };
+
+  Future<void> _reload() =>
+      context.read<AppointmentProvider>().loadAppointments();
+
   @override
   Widget build(BuildContext context) {
-    final allAppointments = context.watch<AppointmentProvider>().appointments;
-    final filtered = _filteredAppointments(allAppointments);
+    final provider = context.watch<AppointmentProvider>();
+    final filtered = _filteredAppointments(provider.appointments);
 
     return AppScaffold(
       extendBody: true,
@@ -60,43 +70,72 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               ],
             ),
           ),
-          Expanded(
-            child: filtered.isEmpty
-                ? Center(
-              child: Text(
-                'No appointments found',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            )
-                : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-              itemCount: filtered.length,
-              itemBuilder: (context, index) {
-                final appt = filtered[index];
-                return AppointmentListTile(
-                  patientName: appt.patientName,
-                  time: appt.time,
-                  reason: appt.reason,
-                  status: appt.status == 'completed'
-                      ? AppointmentStatus.completed
-                      : AppointmentStatus.scheduled,
-                  onStatusChanged: (newStatus) {
-                    context.read<AppointmentProvider>().updateStatus(
-                      appt.id,
-                      newStatus == AppointmentStatus.completed ? 'completed' : 'scheduled',
-                    );
-                  },
-                  onTap: () {
-                    final allPatients = context.read<PatientProvider>().patients;
-                    final matching = allPatients.where((p) => p.id == appt.patientId);
-                    Navigator.of(context).pushNamed(
-                      '/patient-details',
-                      arguments: matching.isNotEmpty ? matching.first : null,
-                    );
-                  },
-                );
-              },
+          if (provider.errorMessage.isNotEmpty)
+            ListErrorBanner(
+              message: provider.errorMessage,
+              onRetry: _reload,
             ),
+          Expanded(
+            child: provider.isLoading && filtered.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : filtered.isEmpty
+                    ? RefreshIndicator(
+                        onRefresh: _reload,
+                        child: SingleChildScrollView(
+                          physics:
+                              const AlwaysScrollableScrollPhysics(),
+                          child: SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height * 0.5,
+                            child: EmptyListState(
+                              icon: Icons.event_note_outlined,
+                              message: _emptyMessage,
+                              actionLabel: _filter == FilterOption.all
+                                  ? 'Add appointment'
+                                  : null,
+                              onAction: _filter == FilterOption.all
+                                  ? () => Navigator.of(context)
+                                      .pushNamed('/add-appointment')
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _reload,
+                        child: ListView.builder(
+                          physics:
+                              const AlwaysScrollableScrollPhysics(),
+                          padding:
+                              const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final appt = filtered[index];
+                            return AppointmentListTile(
+                              patientName: appt.patientName,
+                              time: appt.time,
+                              reason: appt.reason,
+                              status: appt.status == 'completed'
+                                  ? AppointmentStatus.completed
+                                  : AppointmentStatus.scheduled,
+                              onStatusChanged: (newStatus) {
+                                context.read<AppointmentProvider>().updateStatus(
+                                  appt.id,
+                                  newStatus == AppointmentStatus.completed ? 'completed' : 'scheduled',
+                                );
+                              },
+                              onTap: () {
+                                final allPatients = context.read<PatientProvider>().patients;
+                                final matching = allPatients.where((p) => p.id == appt.patientId);
+                                Navigator.of(context).pushNamed(
+                                  '/patient-details',
+                                  arguments: matching.isNotEmpty ? matching.first : null,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
           ),
         ],
       ),

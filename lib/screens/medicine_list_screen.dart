@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/medicine_provider.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_scaffold.dart';
+import '../widgets/list_states.dart';
 import '../widgets/sticky_save_button.dart';
 
 class MedicineListScreen extends StatefulWidget {
@@ -29,9 +30,13 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         .toList();
   }
 
+  Future<void> _reload() =>
+      context.read<MedicineProvider>().loadMedicines();
+
   @override
   Widget build(BuildContext context) {
-    final allMedicines = context.watch<MedicineProvider>().medicines;
+    final provider = context.watch<MedicineProvider>();
+    final allMedicines = provider.medicines;
     final filtered = _filteredMedicines(allMedicines);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
@@ -63,8 +68,15 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
               ),
             ),
           ),
+          if (provider.errorMessage.isNotEmpty)
+            ListErrorBanner(
+              message: provider.errorMessage,
+              onRetry: _reload,
+            ),
           Expanded(
-            child: filtered.isEmpty
+            child: provider.isLoading && filtered.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : filtered.isEmpty
                 ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,

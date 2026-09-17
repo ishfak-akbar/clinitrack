@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/patient_list_tile.dart';
 import '../widgets/app_add_fab.dart';
-import '../utils/app_colors.dart';
+import '../widgets/list_states.dart';
 import '../providers/patient_provider.dart';
 
 class PatientListScreen extends StatefulWidget {
@@ -31,10 +31,14 @@ class _PatientListScreenState extends State<PatientListScreen> {
         .toList();
   }
 
+  Future<void> _reload() =>
+      context.read<PatientProvider>().loadPatients();
+
   @override
   Widget build(BuildContext context) {
-    final allPatients = context.watch<PatientProvider>().patients;
-    final filtered = _filteredPatients(allPatients);
+    final provider = context.watch<PatientProvider>();
+    final filtered = _filteredPatients(provider.patients);
+    final isSearching = _query.trim().isNotEmpty;
 
     return AppScaffold(
       extendBody: true,
@@ -55,28 +59,59 @@ class _PatientListScreenState extends State<PatientListScreen> {
               ),
             ),
           ),
-          Expanded(
-            child: filtered.isEmpty
-                ? Center(
-              child: Text(
-                'No patients found',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            )
-                : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-              itemCount: filtered.length,
-              itemBuilder: (context, index) {
-                final patient = filtered[index];
-                return PatientListTile(
-                  name: patient.name,
-                  age: patient.age,
-                  gender: patient.gender,
-                  lastVisit: patient.lastVisit,
-                  onTap: () => Navigator.of(context).pushNamed('/patient-details', arguments: patient),
-                );
-              },
+          if (provider.errorMessage.isNotEmpty)
+            ListErrorBanner(
+              message: provider.errorMessage,
+              onRetry: _reload,
             ),
+          Expanded(
+            child: provider.isLoading && filtered.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : filtered.isEmpty
+                    ? RefreshIndicator(
+                        onRefresh: _reload,
+                        child: SingleChildScrollView(
+                          physics:
+                              const AlwaysScrollableScrollPhysics(),
+                          child: SizedBox(
+                            height:
+                                MediaQuery.of(context).size.height * 0.5,
+                            child: EmptyListState(
+                              icon: Icons.people_outline,
+                              message: isSearching
+                                  ? 'No patients match your search'
+                                  : 'No patients yet',
+                              actionLabel: isSearching
+                                  ? null
+                                  : 'Add patient',
+                              onAction: isSearching
+                                  ? null
+                                  : () => Navigator.of(context)
+                                      .pushNamed('/add-patient'),
+                            ),
+                          ),
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _reload,
+                        child: ListView.builder(
+                          physics:
+                              const AlwaysScrollableScrollPhysics(),
+                          padding:
+                              const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final patient = filtered[index];
+                            return PatientListTile(
+                              name: patient.name,
+                              age: patient.age,
+                              gender: patient.gender,
+                              lastVisit: patient.lastVisit,
+                              onTap: () => Navigator.of(context).pushNamed('/patient-details', arguments: patient),
+                            );
+                          },
+                        ),
+                      ),
           ),
         ],
       ),
