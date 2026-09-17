@@ -56,12 +56,14 @@ class AuthRepository {
     required String email,
     required String password,
     required String fullName,
+    String role = 'Doctor',
   }) async {
+    final safeRole = role == 'Patient' ? 'Patient' : 'Doctor';
     try {
       final res = await SupabaseConfig.client.auth.signUp(
         email: email,
         password: password,
-        data: {'full_name': fullName},
+        data: {'full_name': fullName, 'role': safeRole},
       );
       final user = res.user;
       if (user == null) {

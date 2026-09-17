@@ -59,6 +59,10 @@ class AuthProvider extends ChangeNotifier {
   bool get useBackend => _repo.useBackend;
   String? get userId => _repo.userId;
 
+  /// Home route for the signed-in role (Part 5: patient portal).
+  bool get isPatient => _role == 'Patient';
+  String get homeRoute => isPatient ? '/patient-home' : '/dashboard';
+
   Future<void> loadSession() async {
     _isLoading = true;
     _errorMessage = '';
@@ -178,6 +182,7 @@ class AuthProvider extends ChangeNotifier {
     required String fullName,
     required String email,
     required String password,
+    String role = 'Doctor',
   }) async {
     _errorMessage = '';
     notifyListeners();
@@ -187,9 +192,11 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setBool(_keyIsLoggedIn, true);
       await prefs.setString(_keyEmail, email);
       await prefs.setString(_keyName, fullName);
+      await prefs.setString(_keyRole, role);
       _isLoggedIn = true;
       _email = email;
       _name = fullName;
+      _role = role;
       notifyListeners();
       return true;
     }
@@ -199,6 +206,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
         fullName: fullName,
+        role: role,
       );
       // With email confirmation OFF, session exists immediately.
       _isLoggedIn = result.hasSession;

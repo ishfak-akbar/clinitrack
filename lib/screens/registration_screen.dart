@@ -19,6 +19,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+  String _role = 'Doctor';
 
   @override
   void dispose() {
@@ -37,6 +38,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       fullName: _nameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text,
+      role: _role,
     );
 
     if (!mounted) return;
@@ -53,7 +55,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       );
       return;
     }
-    Navigator.of(context).pushReplacementNamed('/dashboard');
+    Navigator.of(context).pushReplacementNamed(
+      context.read<AuthProvider>().homeRoute,
+    );
   }
 
   @override
@@ -248,6 +252,41 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   }
                                   return null;
                                 },
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'I am a',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SegmentedButton<String>(
+                                segments: const [
+                                  ButtonSegment(
+                                    value: 'Doctor',
+                                    label: Text('Doctor'),
+                                    icon: Icon(
+                                      Icons.medical_services_outlined,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  ButtonSegment(
+                                    value: 'Patient',
+                                    label: Text('Patient'),
+                                    icon: Icon(
+                                      Icons.person_outline_rounded,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ],
+                                selected: {_role},
+                                onSelectionChanged: (set) => setState(
+                                  () => _role = set.single,
+                                ),
                               ),
 
                               const SizedBox(height: 24),
