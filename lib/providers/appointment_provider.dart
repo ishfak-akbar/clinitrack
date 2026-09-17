@@ -51,7 +51,10 @@ class AppointmentProvider extends ChangeNotifier {
     return visits;
   }
 
-  Future<bool> addAppointment(Appointment appointment) async {
+  /// Part 5: patient bookings pass the chosen doctor's id as [ownerId].
+  /// Defaults to the signed-in user (doctor flow).
+  Future<bool> addAppointment(Appointment appointment,
+      {String? ownerId}) async {
     _errorMessage = '';
     if (useBackend) {
       final userId = _repo.userId;
@@ -61,7 +64,7 @@ class AppointmentProvider extends ChangeNotifier {
         return false;
       }
       try {
-        final saved = await _repo.insert(appointment, userId);
+        final saved = await _repo.insert(appointment, ownerId ?? userId);
         _appointments.insert(0, saved);
         notifyListeners();
         return true;

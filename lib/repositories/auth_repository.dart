@@ -88,6 +88,25 @@ class AuthRepository {
     }
   }
 
+  /// Doctors directory for patient bookings (Part 5).
+  /// RLS (`profiles_doctor_directory`) exposes doctors to signed-in users.
+  Future<List<({String id, String name, String specialty})>>
+      fetchDoctors() async {
+    final rows = await SupabaseConfig.client
+        .from('profiles')
+        .select('id, full_name, specialty')
+        .eq('role', 'Doctor')
+        .order('full_name', ascending: true);
+    return (rows as List).map((r) {
+      final row = r as Map<String, dynamic>;
+      return (
+        id: row['id'] as String,
+        name: ((row['full_name'] as String?) ?? '').trim(),
+        specialty: ((row['specialty'] as String?) ?? '').trim(),
+      );
+    }).toList();
+  }
+
   Future<Map<String, dynamic>?> fetchProfile() async {
     final user = SupabaseConfig.client.auth.currentUser;
     if (user == null) return null;
