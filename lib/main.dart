@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'config/supabase_config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
@@ -9,6 +11,8 @@ import 'providers/follow_up_provider.dart';
 import 'providers/stats_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'utils/app_env.dart';
+import 'utils/app_logger.dart';
 import 'utils/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
@@ -31,21 +35,49 @@ import 'screens/registration_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SupabaseConfig.init();
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
-        ChangeNotifierProvider(create: (_) => PatientProvider()),
-        ChangeNotifierProvider(create: (_) => AppointmentProvider()),
-        ChangeNotifierProvider(create: (_) => PrescriptionProvider()),
-        ChangeNotifierProvider(create: (_) => MedicineProvider()),
-        ChangeNotifierProvider(create: (_) => FollowUpProvider()),
-        ChangeNotifierProvider(create: (_) => StatsProvider()),
-      ],
-      child: const CliniTrackApp(),
-    ),
+
+  // Step 17: global crash capture — framework errors + uncaught async
+  // errors land in AppLogger (and persist the latest for Diagnostics).
+  FlutterError.onError = (details) {
+    AppLogger.error(
+      'Flutter framework error',
+      tag: 'Flutter',
+      error: details.exception,
+      stack: details.stack,
+    );
+  };
+
+  runZonedGuarded(
+    () async {
+      await SupabaseConfig.init();
+      AppLogger.info(
+        'CliniTrack starting (env=${AppEnv.current})',
+        tag: 'App',
+      );
+      runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => SettingsProvider()),
+            ChangeNotifierProvider(create: (_) => PatientProvider()),
+            ChangeNotifierProvider(create: (_) => AppointmentProvider()),
+            ChangeNotifierProvider(create: (_) => PrescriptionProvider()),
+            ChangeNotifierProvider(create: (_) => MedicineProvider()),
+            ChangeNotifierProvider(create: (_) => FollowUpProvider()),
+            ChangeNotifierProvider(create: (_) => StatsProvider()),
+          ],
+          child: const CliniTrackApp(),
+        ),
+      );
+    },
+    (error, stack) {
+      AppLogger.error(
+        'Uncaught async error',
+        tag: 'App',
+        error: error,
+        stack: stack,
+      );
+    },
   );
 }
 
