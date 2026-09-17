@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../config/supabase_config.dart';
+import '../repositories/auth_repository.dart';
 
+/// Step 14: UI/session state only — all Supabase auth + `profiles`
+/// access goes through [AuthRepository].
 class AuthProvider extends ChangeNotifier {
+  final AuthRepository _repo = AuthRepository();
+
   static const String _keyIsLoggedIn = 'is_logged_in';
   static const String _keyEmail = 'user_email';
   static const String _keyRole = 'user_role';
@@ -50,10 +53,8 @@ class AuthProvider extends ChangeNotifier {
   String get bio => _bio;
   String get memberSince => _memberSince;
 
-  bool get useBackend => SupabaseConfig.isConfigured;
-  String? get userId => useBackend
-      ? SupabaseConfig.client.auth.currentUser?.id
-      : null;
+  bool get useBackend => _repo.useBackend;
+  String? get userId => _repo.userId;
 
   Future<void> loadSession() async {
     _isLoading = true;
@@ -72,13 +73,12 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _loadSupabaseSession() async {
     try {
-      final session = SupabaseConfig.client.auth.currentSession;
-      if (session?.user == null) {
+      if (!_repo.hasSession) {
         _isLoggedIn = false;
         return;
       }
       _isLoggedIn = true;
-      _email = session!.user.email ?? '';
+      _email = _repo.currentEmail;
       await _loadProfile();
     } catch (_) {
       _isLoggedIn = false;
@@ -86,31 +86,21 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _loadProfile() async {
-    final user = SupabaseConfig.client.auth.currentUser;
-    if (user == null) return;
-    try {
-      final row = await SupabaseConfig.client
-          .from('profiles')
-          .select()
-          .eq('id', user.id)
-          .maybeSingle();
-      if (row != null) {
-        _name = (row['full_name'] as String?) ?? _name;
-        _role = (row['role'] as String?) ?? _role;
-        _specialty = (row['specialty'] as String?) ?? _specialty;
-        _licenseNumber = (row['license_number'] as String?) ?? _licenseNumber;
-        _phone = (row['phone'] as String?) ?? _phone;
-        _qualifications = (row['qualifications'] as String?) ?? _qualifications;
-        _experienceYears = (row['experience_years'] as String?) ?? _experienceYears;
-        _clinicAddress = (row['clinic_address'] as String?) ?? _clinicAddress;
-        _bio = (row['bio'] as String?) ?? _bio;
-        if (_email.isEmpty) _email = (row['email'] as String?) ?? '';
-      }
-      await _cacheToPrefs();
-    } catch (_) {
-      // Table/RLS not ready yet — stay logged in with auth email only.
-      await _cacheToPrefs();
+    final row = await _repo.fetchProfile();
+    if (row != null) {
+      _name = (row['full_name'] as String?) ?? _name;
+      _role = (row['role'] as String?) ?? _role;
+      _specialty = (row['specialty'] as String?) ?? _specialty;
+      _licenseNumber = (row['license_number'] as String?) ?? _licenseNumber;
+      _phone = (row['phone'] as String?) ?? _phone;
+      _qualifications = (row['qualifications'] as String?) ?? _qualifications;
+      _experienceYears =
+          (row['experience_years'] as String?) ?? _experienceYears;
+      _clinicAddress = (row['clinic_address'] as String?) ?? _clinicAddress;
+      _bio = (row['bio'] as String?) ?? _bio;
+      if (_email.isEmpty) _email = (row['email'] as String?) ?? '';
     }
+    await _cacheToPrefs();
   }
 
   Future<void> _loadLocalSession() async {
@@ -160,22 +150,14 @@ class AuthProvider extends ChangeNotifier {
     }
 
     try {
-      final res = await SupabaseConfig.client.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-      if (res.session == null) {
-        _errorMessage = 'Sign in failed. Please try again.';
-        notifyListeners();
-        return false;
-      }
+      final result = await _repo.signIn(email: email, password: password);
       _isLoggedIn = true;
-      _email = res.user?.email ?? email;
+      _email = result.email;
       _role = role;
       await _loadProfile();
       notifyListeners();
       return true;
-    } on AuthException catch (e) {
+    } on AuthFailure catch (e) {
       _errorMessage = e.message;
       notifyListeners();
       return false;
@@ -208,31 +190,25 @@ class AuthProvider extends ChangeNotifier {
     }
 
     try {
-      final res = await SupabaseConfig.client.auth.signUp(
+      final result = await _repo.signUp(
         email: email,
         password: password,
-        data: {'full_name': fullName},
+        fullName: fullName,
       );
-      final user = res.user;
-      if (user == null) {
-        _errorMessage = 'Sign up failed. Please try again.';
-        notifyListeners();
-        return false;
-      }
       // With email confirmation OFF, session exists immediately.
-      _isLoggedIn = res.session != null;
-      _email = user.email ?? email;
+      _isLoggedIn = result.hasSession;
+      _email = result.email;
       _name = fullName;
       if (_isLoggedIn) {
         await _loadProfile();
         // Ensure display name persisted even if trigger ran first.
-        await _persistProfileName(fullName);
+        await _repo.upsertProfileName(email: _email, fullName: fullName);
       } else {
         _errorMessage = 'Account created. Check your email to confirm, then sign in.';
       }
       notifyListeners();
-      return res.session != null;
-    } on AuthException catch (e) {
+      return result.hasSession;
+    } on AuthFailure catch (e) {
       _errorMessage = e.message;
       notifyListeners();
       return false;
@@ -240,20 +216,6 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = 'Sign up failed. Check connection and try again.';
       notifyListeners();
       return false;
-    }
-  }
-
-  Future<void> _persistProfileName(String fullName) async {
-    final user = SupabaseConfig.client.auth.currentUser;
-    if (user == null) return;
-    try {
-      await SupabaseConfig.client.from('profiles').upsert({
-        'id': user.id,
-        'email': _email,
-        'full_name': fullName,
-      });
-    } catch (_) {
-      // Non-fatal — trigger already created the row.
     }
   }
 
@@ -282,10 +244,9 @@ class AuthProvider extends ChangeNotifier {
     await _cacheToPrefs();
 
     if (!useBackend) return;
-    final user = SupabaseConfig.client.auth.currentUser;
-    if (user == null) return;
+    if (_repo.userId == null) return;
     try {
-      await SupabaseConfig.client.from('profiles').update({
+      await _repo.updateProfile({
         'full_name': name,
         'specialty': specialty,
         'license_number': licenseNumber,
@@ -295,8 +256,8 @@ class AuthProvider extends ChangeNotifier {
         'experience_years': experienceYears,
         'clinic_address': clinicAddress,
         'bio': bio,
-      }).eq('id', user.id);
-    } catch (e) {
+      });
+    } catch (_) {
       _errorMessage = 'Profile saved locally, cloud sync failed.';
       notifyListeners();
     }
@@ -323,11 +284,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     if (useBackend) {
-      try {
-        await SupabaseConfig.client.auth.signOut();
-      } catch (_) {
-        // Still log out locally.
-      }
+      await _repo.signOut();
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyIsLoggedIn, false);

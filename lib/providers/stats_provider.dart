@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../config/supabase_config.dart';
+import '../models/appointment.dart';
+import '../models/follow_up.dart';
+import '../models/medicine.dart';
+import '../models/patient.dart';
+import '../models/prescription.dart';
 import '../services/stats_service.dart';
-import 'appointment_provider.dart';
-import 'follow_up_provider.dart';
-import 'medicine_provider.dart';
-import 'patient_provider.dart';
-import 'prescription_provider.dart';
 
 /// Step 13: Reports/Dashboard numbers.
 ///
@@ -22,7 +21,7 @@ class StatsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
 
-  bool get useBackend => SupabaseConfig.isConfigured;
+  bool get useBackend => StatsService.useBackend;
 
   Future<void> refresh({
     List<Patient> patients = const [],

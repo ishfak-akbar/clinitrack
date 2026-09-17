@@ -34,6 +34,8 @@ class ClinicStats {
 class StatsService {
   static const lowStockThreshold = 40;
 
+  static bool get useBackend => SupabaseConfig.isConfigured;
+
   static const bloodGroups = [
     'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-',
   ];
