@@ -20,9 +20,8 @@ class FollowUpProvider extends ChangeNotifier {
   bool get useBackend => _repo.useBackend;
 
   List<FollowUp> forPatient(String patientId) {
-    final items = _followUps
-        .where((f) => f.patientId == patientId || f.patientName.isNotEmpty && patientId.isEmpty)
-        .toList();
+    final items =
+        _followUps.where((f) => f.patientId == patientId).toList();
     items.sort((a, b) => a.dateIso.compareTo(b.dateIso));
     return items;
   }
@@ -30,6 +29,12 @@ class FollowUpProvider extends ChangeNotifier {
   List<FollowUp> get pending {
     final items = _followUps.where((f) => !f.isDone).toList();
     items.sort((a, b) => a.dateIso.compareTo(b.dateIso));
+    return items;
+  }
+
+  List<FollowUp> get completed {
+    final items = _followUps.where((f) => f.isDone).toList();
+    items.sort((a, b) => b.dateIso.compareTo(a.dateIso));
     return items;
   }
 

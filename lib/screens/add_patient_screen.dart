@@ -79,11 +79,25 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       lastVisit: 'Just added',
     );
 
-    await context.read<PatientProvider>().addPatient(patient);
+    final ok = await context.read<PatientProvider>().addPatient(patient);
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context
+                  .read<PatientProvider>()
+                  .errorMessage
+                  .isEmpty
+              ? 'Could not save patient'
+              : context.read<PatientProvider>().errorMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${patient.name} saved successfully'),

@@ -114,11 +114,26 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       status: 'scheduled',
     );
 
-    await context.read<AppointmentProvider>().addAppointment(appointment);
+    final ok =
+        await context.read<AppointmentProvider>().addAppointment(appointment);
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context
+                  .read<AppointmentProvider>()
+                  .errorMessage
+                  .isEmpty
+              ? 'Could not schedule appointment'
+              : context.read<AppointmentProvider>().errorMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Appointment scheduled successfully'),

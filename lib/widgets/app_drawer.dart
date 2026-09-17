@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/appointment_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/follow_up_provider.dart';
+import '../providers/medicine_provider.dart';
+import '../providers/patient_provider.dart';
+import '../providers/prescription_provider.dart';
+import '../providers/stats_provider.dart';
 import '../utils/app_colors.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -32,7 +38,21 @@ class AppDrawer extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
+      // Read before the await — never let the next account glimpse
+      // the previous one's data.
+      final patients = context.read<PatientProvider>();
+      final appointments = context.read<AppointmentProvider>();
+      final prescriptions = context.read<PrescriptionProvider>();
+      final medicines = context.read<MedicineProvider>();
+      final followUps = context.read<FollowUpProvider>();
+      final stats = context.read<StatsProvider>();
       await context.read<AuthProvider>().logout();
+      patients.clearCache();
+      appointments.clearCache();
+      prescriptions.clearCache();
+      medicines.clearCache();
+      followUps.clearCache();
+      stats.clearCache();
       if (!context.mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }

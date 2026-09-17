@@ -8,6 +8,7 @@ class DashboardStatCard extends StatelessWidget {
   final Color iconColor;
   final Color lightIconBackground;
   final Color lightCardBackground;
+  final VoidCallback? onTap;
 
   const DashboardStatCard({
     super.key,
@@ -17,6 +18,7 @@ class DashboardStatCard extends StatelessWidget {
     required this.iconColor,
     required this.lightIconBackground,
     required this.lightCardBackground,
+    this.onTap,
   });
 
   @override
@@ -28,7 +30,7 @@ class DashboardStatCard extends StatelessWidget {
     final borderColor = isDark ? iconColor.withValues(alpha: 0.30) : AppColors.cardBorderTeal;
     final valueColor = isDark ? AppColors.darkTextPrimary : AppColors.textDark;
 
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cardBg,
@@ -65,6 +67,13 @@ class DashboardStatCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    if (onTap == null) return card;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: card,
     );
   }
 }

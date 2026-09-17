@@ -114,6 +114,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     iconColor: const Color(0xFF3B82F6),
                     lightIconBackground: const Color(0xFFE0EBFD),
                     lightCardBackground: const Color(0xFFF3F8FF),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed('/appointments'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -125,6 +127,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     iconColor: AppColors.successGreen,
                     lightIconBackground: const Color(0xFFE3F6ED),
                     lightCardBackground: const Color(0xFFF2FBF6),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed('/patient-list'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -136,6 +140,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     iconColor: AppColors.followUpOrange,
                     lightIconBackground: AppColors.followUpOrangeLight,
                     lightCardBackground: AppColors.followUpOrangeCard,
+                    onTap: () =>
+                        Navigator.of(context).pushNamed('/follow-ups'),
                   ),
                 ),
               ],

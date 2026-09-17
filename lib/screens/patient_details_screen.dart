@@ -42,10 +42,25 @@ class PatientDetailsScreen extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      await context.read<PatientProvider>().deletePatient(patient.id);
+      final ok =
+          await context.read<PatientProvider>().deletePatient(patient.id);
 
       if (!context.mounted) return;
 
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context
+                    .read<PatientProvider>()
+                    .errorMessage
+                    .isEmpty
+                ? 'Could not delete patient'
+                : context.read<PatientProvider>().errorMessage),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${patient.name} deleted'),
