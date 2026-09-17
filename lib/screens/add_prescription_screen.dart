@@ -74,7 +74,7 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
     };
 
     final prescription = Prescription(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: '',
       patientId: _patient!.id,
       medicineName: _medicineController.text.trim(),
       dosage: _dosageController.text.trim(),
@@ -83,11 +83,26 @@ class _AddPrescriptionScreenState extends State<AddPrescriptionScreen> {
       notes: _notesController.text.trim(),
     );
 
-    await context.read<PrescriptionProvider>().addPrescription(prescription);
+    final ok =
+        await context.read<PrescriptionProvider>().addPrescription(prescription);
 
     if (!mounted) return;
     setState(() => _isSaving = false);
 
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context
+                  .read<PrescriptionProvider>()
+                  .errorMessage
+                  .isEmpty
+              ? 'Could not save prescription'
+              : context.read<PrescriptionProvider>().errorMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Prescription saved successfully'),

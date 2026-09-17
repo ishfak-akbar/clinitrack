@@ -1,7 +1,10 @@
 import 'package:clinitrack/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/app_colors.dart';
 import '../widgets/section_label.dart';
+import '../providers/patient_provider.dart';
+import '../providers/follow_up_provider.dart';
 
 class FollowUpScreen extends StatefulWidget {
   const FollowUpScreen({super.key});
@@ -12,13 +15,28 @@ class FollowUpScreen extends StatefulWidget {
 
 class _FollowUpScreenState extends State<FollowUpScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _patientController = TextEditingController(text: 'John Doe');
+  final _patientController = TextEditingController();
   final _notesController = TextEditingController();
 
+  Patient? _patient;
   bool _needFollowUp = true;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isSaving = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_patient == null) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Patient) {
+        _patient = args;
+        _patientController.text = args.name;
+      } else if (args is String && args.isNotEmpty) {
+        _patientController.text = args;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -45,13 +63,7 @@ class _FollowUpScreenState extends State<FollowUpScreen> {
     if (picked != null) setState(() => _selectedTime = picked);
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
+  String _formatDate(DateTime date) => FollowUp.formatDisplayDate(date);
 
   String _formatTime(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
@@ -60,26 +72,67 @@ class _FollowUpScreenState extends State<FollowUpScreen> {
     return '$hour:$minute $period';
   }
 
+  String _toIsoDate(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
+
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_needFollowUp && _selectedDate == null) {
+    if (!_needFollowUp) {
+      Navigator.of(context).pop();
+      return;
+    }
+    if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a follow-up date')),
       );
       return;
     }
-    if (_needFollowUp && _selectedTime == null) {
+    if (_selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a follow-up time')),
       );
       return;
     }
+    final patientName = _patientController.text.trim();
+    if (patientName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No patient selected')),
+      );
+      return;
+    }
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(seconds: 1));
+
+    final followUp = FollowUp(
+      id: '',
+      patientId: _patient?.id,
+      patientName: patientName,
+      dateIso: _toIsoDate(_selectedDate!),
+      dateLabel: _formatDate(_selectedDate!),
+      time: _formatTime(_selectedTime!),
+      notes: _notesController.text.trim(),
+    );
+
+    final ok = await context.read<FollowUpProvider>().addFollowUp(followUp);
+
     if (!mounted) return;
     setState(() => _isSaving = false);
 
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context
+                  .read<FollowUpProvider>()
+                  .errorMessage
+                  .isEmpty
+              ? 'Could not save follow-up'
+              : context.read<FollowUpProvider>().errorMessage),
+        ),
+      );
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Reminder saved successfully')),
     );
@@ -100,7 +153,9 @@ class _FollowUpScreenState extends State<FollowUpScreen> {
             TextFormField(
               controller: _patientController,
               readOnly: true,
-              decoration: const InputDecoration(hintText: 'John Doe'),
+              decoration: const InputDecoration(hintText: 'Select patient'),
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'No patient selected' : null,
             ),
             const SizedBox(height: 12),
 

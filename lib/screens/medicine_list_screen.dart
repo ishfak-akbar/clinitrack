@@ -39,6 +39,16 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
     return AppScaffold(
       appBar: AppBar(
         title: const Text('Medicine Inventory'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Add medicine',
+            onPressed: () => showDialog(
+              context: context,
+              builder: (_) => const _AddMedicineDialog(),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -56,9 +66,27 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
           Expanded(
             child: filtered.isEmpty
                 ? Center(
-              child: Text(
-                'No medicines found',
-                style: Theme.of(context).textTheme.bodyMedium,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    allMedicines.isEmpty
+                        ? 'No medicines yet'
+                        : 'No medicines found',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  if (allMedicines.isEmpty) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => showDialog(
+                        context: context,
+                        builder: (_) => const _AddMedicineDialog(),
+                      ),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add medicine'),
+                    ),
+                  ],
+                ],
               ),
             )
                 : ListView(
@@ -87,6 +115,165 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         onPressed: () => Navigator.of(context).pushNamed('/order-medicine'),
         label: '+ Order Medicine',
       ),
+    );
+  }
+}
+
+class _AddMedicineDialog extends StatefulWidget {
+  const _AddMedicineDialog();
+
+  @override
+  State<_AddMedicineDialog> createState() => _AddMedicineDialogState();
+}
+
+class _AddMedicineDialogState extends State<_AddMedicineDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _categoryController = TextEditingController();
+  final _stockController = TextEditingController(text: '0');
+  final _unitController = TextEditingController(text: 'tablets');
+  bool _isSaving = false;
+  String _error = '';
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _categoryController.dispose();
+    _stockController.dispose();
+    _unitController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSave() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _isSaving = true;
+      _error = '';
+    });
+
+    final ok = await context.read<MedicineProvider>().addMedicine(
+      Medicine(
+        id: '',
+        name: _nameController.text.trim(),
+        category: _categoryController.text.trim().isEmpty
+            ? 'General'
+            : _categoryController.text.trim(),
+        stock: int.parse(_stockController.text.trim()),
+        unit: _unitController.text.trim().isEmpty
+            ? 'tablets'
+            : _unitController.text.trim(),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+    if (!ok) {
+      setState(() {
+        _error = context.read<MedicineProvider>().errorMessage.isEmpty
+            ? 'Could not save medicine'
+            : context.read<MedicineProvider>().errorMessage;
+      });
+      return;
+    }
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Medicine added successfully'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add Medicine'),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  hintText: 'Paracetamol 500mg',
+                ),
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? 'Name is required'
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _categoryController,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Category (optional)',
+                  hintText: 'General',
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _stockController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Stock',
+                        hintText: '0',
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Required';
+                        }
+                        final n = int.tryParse(v.trim());
+                        if (n == null || n < 0) return 'Invalid';
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _unitController,
+                      decoration: const InputDecoration(
+                        labelText: 'Unit',
+                        hintText: 'tablets',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_error.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _error,
+                  style: const TextStyle(color: AppColors.errorRed, fontSize: 13),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isSaving ? null : _handleSave,
+          child: _isSaving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Add'),
+        ),
+      ],
     );
   }
 }

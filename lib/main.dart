@@ -5,6 +5,7 @@ import 'providers/patient_provider.dart';
 import 'providers/appointment_provider.dart';
 import 'providers/prescription_provider.dart';
 import 'providers/medicine_provider.dart';
+import 'providers/follow_up_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'utils/app_theme.dart';
@@ -39,6 +40,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AppointmentProvider()),
         ChangeNotifierProvider(create: (_) => PrescriptionProvider()),
         ChangeNotifierProvider(create: (_) => MedicineProvider()),
+        ChangeNotifierProvider(create: (_) => FollowUpProvider()),
       ],
       child: const CliniTrackApp(),
     ),

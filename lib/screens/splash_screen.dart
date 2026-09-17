@@ -7,6 +7,7 @@ import '../providers/patient_provider.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/prescription_provider.dart';
 import '../providers/medicine_provider.dart';
+import '../providers/follow_up_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,6 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
       appointmentProvider.loadAppointments(),
       prescriptionProvider.loadPrescriptions(),
       context.read<MedicineProvider>().loadMedicines(),
+      context.read<FollowUpProvider>().loadFollowUps(),
       Future.delayed(const Duration(seconds: 2)),
     ]);
 

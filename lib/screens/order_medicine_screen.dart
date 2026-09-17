@@ -46,10 +46,27 @@ class _OrderMedicineScreenState extends State<OrderMedicineScreen> {
     setState(() => _isSaving = true);
 
     final qty = int.parse(_quantityController.text.trim());
-    await context.read<MedicineProvider>().addStock(_selectedMedicine!.id, qty);
+    final ok = await context
+        .read<MedicineProvider>()
+        .addStock(_selectedMedicine!.id, qty);
 
     if (!mounted) return;
     setState(() => _isSaving = false);
+
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context
+                  .read<MedicineProvider>()
+                  .errorMessage
+                  .isEmpty
+              ? 'Could not place order'
+              : context.read<MedicineProvider>().errorMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
