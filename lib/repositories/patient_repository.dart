@@ -50,7 +50,7 @@ class PatientRepository {
           .eq('user_id', uid)
           .maybeSingle();
       if (row == null) return null;
-      return Patient.fromSupabase(row as Map<String, dynamic>);
+      return Patient.fromSupabase(row);
     } catch (_) {
       return null;
     }
