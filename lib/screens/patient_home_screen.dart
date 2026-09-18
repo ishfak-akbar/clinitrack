@@ -175,6 +175,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             _SectionTitle(
               title: 'My prescriptions',
               count: prescriptions.prescriptions.length,
+              actionLabel: 'View all',
+              onAction: () => Navigator.of(context)
+                  .pushNamed('/patient-prescriptions'),
             ),
             const SizedBox(height: 8),
             if (prescriptions.prescriptions.isEmpty)
@@ -198,6 +201,9 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             _SectionTitle(
               title: 'My reminders',
               count: followUps.followUps.length,
+              actionLabel: 'View all',
+              onAction: () => Navigator.of(context)
+                  .pushNamed('/patient-reminders'),
             ),
             const SizedBox(height: 8),
             if (followUps.followUps.isEmpty)
@@ -231,8 +237,15 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 class _SectionTitle extends StatelessWidget {
   final String title;
   final int count;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
-  const _SectionTitle({required this.title, required this.count});
+  const _SectionTitle({
+    required this.title,
+    required this.count,
+    this.actionLabel,
+    this.onAction,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -248,6 +261,13 @@ class _SectionTitle extends StatelessWidget {
           '$count',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
+        if (actionLabel != null && onAction != null) ...[
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: onAction,
+            child: Text(actionLabel!),
+          ),
+        ],
       ],
     );
   }
