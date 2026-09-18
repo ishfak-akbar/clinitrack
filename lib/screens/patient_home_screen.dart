@@ -89,6 +89,16 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         title: const Text('My Care'),
         actions: [
           IconButton(
+            tooltip: 'Profile',
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => Navigator.of(context).pushNamed('/profile'),
+          ),
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => Navigator.of(context).pushNamed('/settings'),
+          ),
+          IconButton(
             tooltip: 'Logout',
             icon: const Icon(Icons.logout_outlined),
             onPressed: _logout,

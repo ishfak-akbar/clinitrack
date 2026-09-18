@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/patient_provider.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/prescription_provider.dart';
+import '../providers/follow_up_provider.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 
@@ -292,12 +293,15 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final isPatient = auth.isPatient;
     final totalPatients =
         context.watch<PatientProvider>().patients.length;
     final totalAppointments =
         context.watch<AppointmentProvider>().appointments.length;
     final totalPrescriptions =
         context.watch<PrescriptionProvider>().prescriptions.length;
+    final totalReminders =
+        context.watch<FollowUpProvider>().followUps.length;
 
     return AppScaffold(
       extendBody: true,
@@ -322,7 +326,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  auth.specialty,
+                  isPatient ? 'Patient' : auth.specialty,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 if (auth.memberSince.isNotEmpty) ...[
@@ -343,25 +347,37 @@ class ProfileScreen extends StatelessWidget {
             children: [
               _statCard(
                 context,
-                icon: Icons.groups_outlined,
-                value: '$totalPatients',
-                label: 'Patients',
+                icon: isPatient
+                    ? Icons.calendar_month_outlined
+                    : Icons.groups_outlined,
+                value: isPatient
+                    ? '$totalAppointments'
+                    : '$totalPatients',
+                label: isPatient ? 'My visits' : 'Patients',
                 color: AppColors.successGreen,
               ),
               const SizedBox(width: 7),
               _statCard(
                 context,
-                icon: Icons.calendar_month_outlined,
-                value: '$totalAppointments',
-                label: 'Appointments',
+                icon: isPatient
+                    ? Icons.medication_outlined
+                    : Icons.calendar_month_outlined,
+                value: isPatient
+                    ? '$totalPrescriptions'
+                    : '$totalAppointments',
+                label: isPatient ? 'Prescriptions' : 'Appointments',
                 color: const Color(0xFF3B82F6),
               ),
               const SizedBox(width: 7),
               _statCard(
                 context,
-                icon: Icons.medication_outlined,
-                value: '$totalPrescriptions',
-                label: 'Prescriptions',
+                icon: isPatient
+                    ? Icons.event_available_outlined
+                    : Icons.medication_outlined,
+                value: isPatient
+                    ? '$totalReminders'
+                    : '$totalPrescriptions',
+                label: isPatient ? 'Reminders' : 'Prescriptions',
                 color: AppColors.followUpOrange,
               ),
             ],
@@ -386,38 +402,39 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 7),
           ],
 
-          // ---------- Professional details ----------
-          _sectionCard(
-            context,
-            title: 'Professional Details',
-            icon: Icons.workspace_premium_outlined,
-            child: Column(
-              children: [
-                _infoTile(
-                  context,
-                  icon: Icons.menu_book_outlined,
-                  label: 'Qualifications',
-                  value: auth.qualifications,
-                ),
-                const Divider(),
-                _infoTile(
-                  context,
-                  icon: Icons.timeline_outlined,
-                  label: 'Experience',
-                  value: '${auth.experienceYears} years',
-                ),
-                const Divider(),
-                _infoTile(
-                  context,
-                  icon: Icons.local_hospital_outlined,
-                  label: 'Clinic Address',
-                  value: auth.clinicAddress,
-                ),
-              ],
+          // ---------- Professional details (doctors only) ----------
+          if (!isPatient) ...[
+            _sectionCard(
+              context,
+              title: 'Professional Details',
+              icon: Icons.workspace_premium_outlined,
+              child: Column(
+                children: [
+                  _infoTile(
+                    context,
+                    icon: Icons.menu_book_outlined,
+                    label: 'Qualifications',
+                    value: auth.qualifications,
+                  ),
+                  const Divider(),
+                  _infoTile(
+                    context,
+                    icon: Icons.timeline_outlined,
+                    label: 'Experience',
+                    value: '${auth.experienceYears} years',
+                  ),
+                  const Divider(),
+                  _infoTile(
+                    context,
+                    icon: Icons.local_hospital_outlined,
+                    label: 'Clinic Address',
+                    value: auth.clinicAddress,
+                  ),
+                ],
+              ),
             ),
-          ),
-
-          const SizedBox(height: 7),
+            const SizedBox(height: 7),
+          ],
 
           // ---------- Account information ----------
           _sectionCard(
@@ -426,13 +443,15 @@ class ProfileScreen extends StatelessWidget {
             icon: Icons.manage_accounts_outlined,
             child: Column(
               children: [
-                _infoTile(
-                  context,
-                  icon: Icons.verified_user_outlined,
-                  label: 'License Number',
-                  value: auth.licenseNumber,
-                ),
-                const Divider(),
+                if (!isPatient) ...[
+                  _infoTile(
+                    context,
+                    icon: Icons.verified_user_outlined,
+                    label: 'License Number',
+                    value: auth.licenseNumber,
+                  ),
+                  const Divider(),
+                ],
                 _infoTile(
                   context,
                   icon: Icons.alternate_email_outlined,
@@ -452,13 +471,14 @@ class ProfileScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pushNamed('/edit-profile');
-            },
-            icon: const Icon(Icons.edit_outlined),
-            label: const Text('Edit Profile'),
-          ),
+          if (!isPatient)
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/edit-profile');
+              },
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Edit Profile'),
+            ),
         ],
       ),
     );
