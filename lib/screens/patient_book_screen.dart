@@ -71,10 +71,12 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
   }
 
   Future<void> _pickDate() async {
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      initialDate: _date ?? start,
+      firstDate: start,
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) setState(() => _date = picked);
@@ -137,9 +139,29 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
       orElse: () => _doctors.first,
     );
     final auth = context.read<AuthProvider>();
-    final displayName = auth.name.trim().isNotEmpty
-        ? auth.name.trim()
-        : myPatient.name;
+    // Prefer the linked patient row name (source of truth for bookings);
+    // fall back to the auth display name.
+    final displayName = myPatient.name.trim().isNotEmpty
+        ? myPatient.name.trim()
+        : auth.name.trim();
+    final iso = _iso(_date!);
+
+    // Avoid duplicate active requests for the same doctor + day.
+    final existing =
+        context.read<AppointmentProvider>().appointments.where(
+              (a) =>
+                  a.doctor == doctor.name &&
+                  a.dateIso == iso &&
+                  (a.status == 'requested' || a.status == 'scheduled'),
+            );
+    if (existing.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You already have an active request for this day'),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isSaving = true);
     final ok = await context.read<AppointmentProvider>().addAppointment(
@@ -148,7 +170,7 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
             patientId: myPatient.id,
             patientName: displayName,
             date: _fmtDate(_date!),
-            dateIso: _iso(_date!),
+            dateIso: iso,
             time: _fmtTime(_time!),
             reason: _reasonController.text.trim(),
             doctor: doctor.name,
@@ -215,8 +237,12 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
                         ),
                       ],
                     )
-                  else
-                    DropdownButtonFormField<String>(
+                    else if (_doctors.isEmpty)
+                      const Text(
+                        'No doctors found yet. Ask your clinic to create a doctor account first.',
+                      )
+                    else
+                      DropdownButtonFormField<String>(
                       initialValue: _selectedDoctorId,
                       isExpanded: true,
                       decoration: const InputDecoration(
