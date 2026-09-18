@@ -19,6 +19,18 @@ class PatientProvider extends ChangeNotifier {
 
   bool get useBackend => _repo.useBackend;
 
+  /// Part 5: own linked row for patient accounts (first of visible rows).
+  Patient? get myLinked => _patients.isEmpty ? null : _patients.first;
+
+  Future<Patient?> fetchMyLinked() async {
+    final linked = await _repo.fetchMyLinked();
+    if (linked != null && !_patients.any((p) => p.id == linked.id)) {
+      _patients = [linked, ..._patients];
+      notifyListeners();
+    }
+    return linked ?? myLinked;
+  }
+
   Future<void> loadPatients() async {
     _isLoading = true;
     _errorMessage = '';

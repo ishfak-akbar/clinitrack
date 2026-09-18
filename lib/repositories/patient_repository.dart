@@ -37,6 +37,25 @@ class PatientRepository {
     return Patient.fromSupabase(row);
   }
 
+  /// Part 5: linked row for the signed-in patient (`patients.user_id`).
+  /// Null when portal migration not run or row not created yet.
+  Future<Patient?> fetchMyLinked() async {
+    if (!useBackend) return null;
+    final uid = userId;
+    if (uid == null) return null;
+    try {
+      final row = await SupabaseConfig.client
+          .from('patients')
+          .select()
+          .eq('user_id', uid)
+          .maybeSingle();
+      if (row == null) return null;
+      return Patient.fromSupabase(row as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> delete(String id) async {
     await SupabaseConfig.client.from('patients').delete().eq('id', id);
   }
