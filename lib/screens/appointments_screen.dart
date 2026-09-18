@@ -15,14 +15,20 @@ class AppointmentsScreen extends StatefulWidget {
   State<AppointmentsScreen> createState() => _AppointmentsScreenState();
 }
 
-enum FilterOption { all, scheduled, completed }
+enum FilterOption { all, requested, scheduled, completed, cancelled }
 
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   FilterOption _filter = FilterOption.all;
 
   List<Appointment> _filteredAppointments(List<Appointment> all) {
     if (_filter == FilterOption.all) return all;
-    final targetStatus = _filter == FilterOption.scheduled ? 'scheduled' : 'completed';
+    final targetStatus = switch (_filter) {
+      FilterOption.requested => 'requested',
+      FilterOption.scheduled => 'scheduled',
+      FilterOption.completed => 'completed',
+      FilterOption.cancelled => 'cancelled',
+      FilterOption.all => '',
+    };
     return all.where((a) => a.status == targetStatus).toList();
   }
 
@@ -39,9 +45,25 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   String get _emptyMessage => switch (_filter) {
+        FilterOption.requested => 'No appointment requests',
         FilterOption.scheduled => 'No scheduled appointments',
         FilterOption.completed => 'No completed appointments',
+        FilterOption.cancelled => 'No cancelled appointments',
         FilterOption.all => 'No appointments yet',
+      };
+
+  AppointmentStatus _toStatus(String s) => switch (s) {
+        'completed' => AppointmentStatus.completed,
+        'requested' => AppointmentStatus.requested,
+        'cancelled' => AppointmentStatus.cancelled,
+        _ => AppointmentStatus.scheduled,
+      };
+
+  String _fromStatus(AppointmentStatus s) => switch (s) {
+        AppointmentStatus.completed => 'completed',
+        AppointmentStatus.requested => 'requested',
+        AppointmentStatus.cancelled => 'cancelled',
+        AppointmentStatus.scheduled => 'scheduled',
       };
 
   Future<void> _reload() =>
@@ -62,12 +84,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Row(
-              children: [
-                _filterChip('All', FilterOption.all),
-                _filterChip('Scheduled', FilterOption.scheduled),
-                _filterChip('Completed', FilterOption.completed),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _filterChip('All', FilterOption.all),
+                  _filterChip('Requested', FilterOption.requested),
+                  _filterChip('Scheduled', FilterOption.scheduled),
+                  _filterChip('Completed', FilterOption.completed),
+                  _filterChip('Cancelled', FilterOption.cancelled),
+                ],
+              ),
             ),
           ),
           if (provider.errorMessage.isNotEmpty)
@@ -115,22 +142,39 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                               patientName: appt.patientName,
                               time: appt.time,
                               reason: appt.reason,
-                              status: appt.status == 'completed'
-                                  ? AppointmentStatus.completed
-                                  : AppointmentStatus.scheduled,
+                              status: _toStatus(appt.status),
                               onStatusChanged: (newStatus) {
                                 context.read<AppointmentProvider>().updateStatus(
                                   appt.id,
-                                  newStatus == AppointmentStatus.completed ? 'completed' : 'scheduled',
+                                  _fromStatus(newStatus),
                                 );
                               },
                               onTap: () {
                                 final allPatients = context.read<PatientProvider>().patients;
                                 final matching = allPatients.where((p) => p.id == appt.patientId);
-                                Navigator.of(context).pushNamed(
-                                  '/patient-details',
-                                  arguments: matching.isNotEmpty ? matching.first : null,
-                                );
+                                if (matching.isNotEmpty) {
+                                  Navigator.of(context).pushNamed(
+                                    '/patient-details',
+                                    arguments: matching.first,
+                                  );
+                                } else {
+                                  // Portal booking: linked row not in doctor list —
+                                  // show a read-only record built from the booking.
+                                  Navigator.of(context).pushNamed(
+                                    '/patient-details',
+                                    arguments: Patient(
+                                      id: appt.patientId ?? '',
+                                      name: appt.patientName,
+                                      age: '',
+                                      gender: '',
+                                      contact: '',
+                                      bloodGroup: '',
+                                      medicalHistory: '',
+                                      allergies: const [],
+                                      lastVisit: appt.date,
+                                    ),
+                                  );
+                                }
                               },
                             );
                           },

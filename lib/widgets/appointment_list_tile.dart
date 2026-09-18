@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-enum AppointmentStatus { scheduled, completed }
+enum AppointmentStatus { scheduled, completed, requested, cancelled }
 
 class AppointmentListTile extends StatelessWidget {
   final String patientName;
@@ -24,6 +24,8 @@ class AppointmentListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isCompleted = status == AppointmentStatus.completed;
+    final bool isRequested = status == AppointmentStatus.requested;
+    final bool isCancelled = status == AppointmentStatus.cancelled;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
 
@@ -41,26 +43,63 @@ class AppointmentListTile extends StatelessWidget {
         ),
         title: Text(patientName, style: Theme.of(context).textTheme.titleMedium),
         subtitle: Text('$time · $reason'),
-        trailing: GestureDetector(
-          onTap: () => onStatusChanged(
-            isCompleted ? AppointmentStatus.scheduled : AppointmentStatus.completed,
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: isCompleted ? const Color(0xFFE3F6ED) : const Color(0xFFFDF0DC),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              isCompleted ? 'Completed' : 'Scheduled',
-              style: TextStyle(
-                color: isCompleted ? AppColors.successGreen : AppColors.warningAmber,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
+        trailing: isRequested
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Approve',
+                    icon: const Icon(Icons.check_circle,
+                        color: AppColors.successGreen),
+                    onPressed: () => onStatusChanged(
+                      AppointmentStatus.scheduled,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Decline',
+                    icon: const Icon(Icons.cancel_outlined,
+                        color: AppColors.errorRed),
+                    onPressed: () => onStatusChanged(
+                      AppointmentStatus.cancelled,
+                    ),
+                  ),
+                ],
+              )
+            : GestureDetector(
+                onTap: () => onStatusChanged(
+                  isCompleted
+                      ? AppointmentStatus.scheduled
+                      : AppointmentStatus.completed,
+                ),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? const Color(0xFFE3F6ED)
+                        : isCancelled
+                            ? const Color(0xFFF3F4F6)
+                            : const Color(0xFFFDF0DC),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isCompleted
+                        ? 'Completed'
+                        : isCancelled
+                            ? 'Cancelled'
+                            : 'Scheduled',
+                    style: TextStyle(
+                      color: isCompleted
+                          ? AppColors.successGreen
+                          : isCancelled
+                              ? Colors.grey
+                              : AppColors.warningAmber,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
       ),
     );
   }
