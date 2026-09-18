@@ -17,6 +17,8 @@ import 'utils/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/patient_home_screen.dart';
+import 'screens/patient_book_screen.dart';
 import 'screens/add_patient_screen.dart';
 import 'screens/patient_list_screen.dart';
 import 'screens/patient_details_screen.dart';
@@ -101,6 +103,8 @@ class CliniTrackApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegistrationScreen(),
         '/dashboard': (context) => const DashboardScreen(),
+        '/patient-home': (context) => const PatientHomeScreen(),
+        '/patient-book': (context) => const PatientBookScreen(),
         '/add-patient': (context) => const AddPatientScreen(),
         '/patient-list': (context) => const PatientListScreen(),
         '/add-appointment': (context) => const AddAppointmentScreen(),
