@@ -37,6 +37,7 @@ import 'screens/medicine_list_screen.dart';
 import 'screens/order_medicine_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/registration_screen.dart';
+import 'widgets/role_guard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -104,27 +105,44 @@ class CliniTrackApp extends StatelessWidget {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegistrationScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
-        '/patient-home': (context) => const PatientHomeScreen(),
-        '/patient-book': (context) => const PatientBookScreen(),
-        '/patient-prescriptions': (context) =>
-            const PatientPrescriptionsScreen(),
-        '/patient-reminders': (context) => const PatientRemindersScreen(),
-        '/add-patient': (context) => const AddPatientScreen(),
-        '/patient-list': (context) => const PatientListScreen(),
-        '/add-appointment': (context) => const AddAppointmentScreen(),
-        '/appointments': (context) => const AppointmentsScreen(),
-        '/add-prescription': (context) => const AddPrescriptionScreen(),
-        '/follow-up': (context) => const FollowUpScreen(),
-        '/follow-ups': (context) => const FollowUpListScreen(),
-        '/reports': (context) => const ReportsScreen(),
-        '/more': (context) => const MoreScreen(),
+        '/dashboard': (context) =>
+            const RoleGuard(doctorOnly: true, child: DashboardScreen()),
+        '/patient-home': (context) =>
+            const RoleGuard(patientOnly: true, child: PatientHomeScreen()),
+        '/patient-book': (context) =>
+            const RoleGuard(patientOnly: true, child: PatientBookScreen()),
+        '/patient-prescriptions': (context) => const RoleGuard(
+            patientOnly: true, child: PatientPrescriptionsScreen()),
+        '/patient-reminders': (context) => const RoleGuard(
+            patientOnly: true, child: PatientRemindersScreen()),
+        '/add-patient': (context) =>
+            const RoleGuard(doctorOnly: true, child: AddPatientScreen()),
+        '/patient-list': (context) =>
+            const RoleGuard(doctorOnly: true, child: PatientListScreen()),
+        '/add-appointment': (context) =>
+            const RoleGuard(doctorOnly: true, child: AddAppointmentScreen()),
+        '/appointments': (context) =>
+            const RoleGuard(doctorOnly: true, child: AppointmentsScreen()),
+        '/add-prescription': (context) => const RoleGuard(
+            doctorOnly: true, child: AddPrescriptionScreen()),
+        '/follow-up': (context) =>
+            const RoleGuard(doctorOnly: true, child: FollowUpScreen()),
+        '/follow-ups': (context) =>
+            const RoleGuard(doctorOnly: true, child: FollowUpListScreen()),
+        '/reports': (context) =>
+            const RoleGuard(doctorOnly: true, child: ReportsScreen()),
+        '/more': (context) =>
+            const RoleGuard(doctorOnly: true, child: MoreScreen()),
         '/settings': (context) => const SettingsScreen(),
         '/profile': (context) => const ProfileScreen(),
-        '/edit-profile': (context) => const EditProfileScreen(),
-        '/patient-details': (context) => const PatientDetailsScreen(),
-        '/medicine-list': (context) => const MedicineListScreen(),
-        '/order-medicine': (context) => const OrderMedicineScreen(),
+        '/edit-profile': (context) =>
+            const RoleGuard(doctorOnly: true, child: EditProfileScreen()),
+        '/patient-details': (context) =>
+            const RoleGuard(doctorOnly: true, child: PatientDetailsScreen()),
+        '/medicine-list': (context) =>
+            const RoleGuard(doctorOnly: true, child: MedicineListScreen()),
+        '/order-medicine': (context) =>
+            const RoleGuard(doctorOnly: true, child: OrderMedicineScreen()),
       },
     );
   }
