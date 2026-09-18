@@ -69,6 +69,45 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   Future<void> _reload() =>
       context.read<AppointmentProvider>().loadAppointments();
 
+  Future<void> _changeStatus(
+    BuildContext context,
+    Appointment appt,
+    AppointmentStatus newStatus,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final wasRequested = appt.status == 'requested';
+    final ok = await context.read<AppointmentProvider>().updateStatus(
+          appt.id,
+          _fromStatus(newStatus),
+        );
+    if (!context.mounted) return;
+    if (!ok) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(context
+                  .read<AppointmentProvider>()
+                  .errorMessage
+                  .isEmpty
+              ? 'Could not update appointment'
+              : context.read<AppointmentProvider>().errorMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    final label = switch (newStatus) {
+      AppointmentStatus.scheduled =>
+        wasRequested ? 'Request approved — patient sees confirmed' : 'Marked scheduled',
+      AppointmentStatus.completed => 'Marked completed',
+      AppointmentStatus.cancelled =>
+        wasRequested ? 'Request declined — patient sees declined' : 'Marked cancelled',
+      AppointmentStatus.requested => 'Marked requested',
+    };
+    messenger.showSnackBar(
+      SnackBar(content: Text(label), behavior: SnackBarBehavior.floating),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppointmentProvider>();
@@ -143,12 +182,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                               time: appt.time,
                               reason: appt.reason,
                               status: _toStatus(appt.status),
-                              onStatusChanged: (newStatus) {
-                                context.read<AppointmentProvider>().updateStatus(
-                                  appt.id,
-                                  _fromStatus(newStatus),
-                                );
-                              },
+                              onStatusChanged: (newStatus) =>
+                                  _changeStatus(context, appt, newStatus),
                               onTap: () {
                                 final allPatients = context.read<PatientProvider>().patients;
                                 final matching = allPatients.where((p) => p.id == appt.patientId);

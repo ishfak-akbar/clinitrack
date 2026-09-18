@@ -83,6 +83,15 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     final prescriptions = context.watch<PrescriptionProvider>();
     final followUps = context.watch<FollowUpProvider>();
     final theme = Theme.of(context);
+    final confirmed = appointments.appointments
+        .where((a) => a.status == 'scheduled')
+        .length;
+    final declined = appointments.appointments
+        .where((a) => a.status == 'cancelled')
+        .length;
+    final awaiting = appointments.appointments
+        .where((a) => a.status == 'requested')
+        .length;
 
     return AppScaffold(
       appBar: AppBar(
@@ -131,6 +140,32 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                 onRetry: _refresh,
                 padding: EdgeInsets.zero,
               ),
+            // Doctor feedback: surface approval outcomes explicitly.
+            if (!_loading &&
+                (confirmed > 0 || declined > 0 || awaiting > 0)) ...[
+              const SizedBox(height: 12),
+              if (confirmed > 0)
+                _FeedbackBanner(
+                  icon: Icons.check_circle,
+                  color: Colors.green,
+                  text:
+                      '$confirmed visit${confirmed == 1 ? '' : 's'} confirmed by your doctor',
+                ),
+              if (awaiting > 0)
+                _FeedbackBanner(
+                  icon: Icons.schedule_outlined,
+                  color: Colors.amber.shade800,
+                  text:
+                      '$awaiting request${awaiting == 1 ? '' : 's'} awaiting doctor review',
+                ),
+              if (declined > 0)
+                _FeedbackBanner(
+                  icon: Icons.cancel_outlined,
+                  color: Colors.red,
+                  text:
+                      '$declined request${declined == 1 ? '' : 's'} declined — try another day',
+                ),
+            ],
             _SectionTitle(
               title: 'My appointments',
               count: appointments.appointments.length,
@@ -150,26 +185,63 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               )
             else
               ...appointments.appointments.map(
-                (a) => Card(
-                  child: ListTile(
-                    title: Text(
-                      '${a.date} · ${a.time}',
-                      style: theme.textTheme.titleMedium,
+                (a) {
+                  final statusColor = switch (a.status) {
+                    'scheduled' => Colors.green,
+                    'completed' => Colors.green.shade700,
+                    'cancelled' => Colors.red,
+                    _ => Colors.amber.shade800,
+                  };
+                  final statusLabel = switch (a.status) {
+                    'scheduled' => 'Confirmed',
+                    'completed' => 'Completed',
+                    'cancelled' => 'Declined',
+                    'requested' => 'Awaiting review',
+                    _ => a.status,
+                  };
+                  return Card(
+                    child: ListTile(
+                      title: Text(
+                        '${a.date} · ${a.time}',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${a.doctor.isEmpty ? 'Doctor' : a.doctor}'
+                            '${a.reason.isEmpty ? '' : ' · ${a.reason}'}',
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              statusLabel,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      isThreeLine: true,
+                      trailing: (a.status == 'requested' ||
+                              a.status == 'scheduled')
+                          ? TextButton(
+                              onPressed: () => _cancel(a),
+                              child: const Text('Cancel'),
+                            )
+                          : null,
                     ),
-                    subtitle: Text(
-                      '${a.doctor.isEmpty ? 'Doctor' : a.doctor}'
-                      '${a.reason.isEmpty ? '' : ' · ${a.reason}'}\nStatus: ${a.status}',
-                    ),
-                    isThreeLine: true,
-                    trailing: (a.status == 'requested' ||
-                            a.status == 'scheduled')
-                        ? TextButton(
-                            onPressed: () => _cancel(a),
-                            child: const Text('Cancel'),
-                          )
-                        : null,
-                  ),
-                ),
+                  );
+                },
               ),
             const SizedBox(height: 16),
             _SectionTitle(
@@ -227,6 +299,40 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   ),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FeedbackBanner extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String text;
+
+  const _FeedbackBanner({
+    required this.icon,
+    required this.color,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                text,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
           ],
         ),
       ),
