@@ -31,6 +31,72 @@ class PatientProvider extends ChangeNotifier {
     return linked ?? myLinked;
   }
 
+  /// Part 5: patient edits own linked demographics.
+  Future<bool> updateMyLinked({
+    required String name,
+    required String age,
+    required String gender,
+    required String contact,
+    required String bloodGroup,
+    required String medicalHistory,
+    required List<String> allergies,
+  }) async {
+    final current = myLinked;
+    if (current == null) {
+      _errorMessage = 'Your patient profile is not linked yet.';
+      notifyListeners();
+      return false;
+    }
+    _errorMessage = '';
+    final parsedAge = int.tryParse(age.trim());
+    final fields = <String, dynamic>{
+      'name': name.trim(),
+      'age': parsedAge,
+      'gender': gender.isEmpty ? null : gender,
+      'contact': contact.trim().isEmpty ? null : contact.trim(),
+      'blood_group': bloodGroup.isEmpty ? null : bloodGroup,
+      'medical_history': medicalHistory,
+      'allergies': allergies.where((a) => a.trim().isNotEmpty).toList(),
+    };
+    if (useBackend) {
+      if (_repo.userId == null) {
+        _errorMessage = 'Please sign in again.';
+        notifyListeners();
+        return false;
+      }
+      try {
+        final saved = await _repo.updateFields(current.id, fields);
+        final i = _patients.indexWhere((p) => p.id == current.id);
+        if (i != -1) _patients[i] = saved;
+        notifyListeners();
+        return true;
+      } catch (_) {
+        _errorMessage = 'Could not save. Check connection and try again.';
+        notifyListeners();
+        return false;
+      }
+    }
+    final updated = Patient(
+      id: current.id,
+      name: name.trim(),
+      age: age.trim(),
+      gender: gender,
+      contact: contact.trim(),
+      bloodGroup: bloodGroup,
+      medicalHistory: medicalHistory,
+      allergies: allergies,
+      lastVisit: current.lastVisit,
+      ownerId: current.ownerId,
+      createdAt: current.createdAt,
+      updatedAt: current.updatedAt,
+    );
+    final i = _patients.indexWhere((p) => p.id == current.id);
+    if (i != -1) _patients[i] = updated;
+    notifyListeners();
+    await _repo.saveLocal(_patients);
+    return true;
+  }
+
   Future<void> loadPatients() async {
     _isLoading = true;
     _errorMessage = '';

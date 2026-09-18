@@ -471,6 +471,14 @@ class ProfileScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
+          if (isPatient)
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/patient-edit');
+              },
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Edit health profile'),
+            ),
           if (!isPatient)
             ElevatedButton.icon(
               onPressed: () {

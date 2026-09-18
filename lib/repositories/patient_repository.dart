@@ -37,6 +37,19 @@ class PatientRepository {
     return Patient.fromSupabase(row);
   }
 
+  /// Part 5: patient edits own linked demographics. Covered by the
+  /// `patients_owner_all` policy (owner_id = auth.uid()); only
+  /// health fields are written, never owner_id/user_id.
+  Future<Patient> updateFields(String id, Map<String, dynamic> fields) async {
+    final row = await SupabaseConfig.client
+        .from('patients')
+        .update(fields)
+        .eq('id', id)
+        .select()
+        .single();
+    return Patient.fromSupabase(row);
+  }
+
   /// Part 5: linked row for the signed-in patient (`patients.user_id`).
   /// Null when portal migration not run or row not created yet.
   Future<Patient?> fetchMyLinked() async {

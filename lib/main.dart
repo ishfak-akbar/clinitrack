@@ -19,6 +19,7 @@ import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/patient_home_screen.dart';
 import 'screens/patient_book_screen.dart';
+import 'screens/patient_edit_screen.dart';
 import 'screens/patient_prescriptions_screen.dart';
 import 'screens/patient_reminders_screen.dart';
 import 'screens/add_patient_screen.dart';
@@ -111,6 +112,8 @@ class CliniTrackApp extends StatelessWidget {
             const RoleGuard(patientOnly: true, child: PatientHomeScreen()),
         '/patient-book': (context) =>
             const RoleGuard(patientOnly: true, child: PatientBookScreen()),
+        '/patient-edit': (context) =>
+            const RoleGuard(patientOnly: true, child: PatientEditScreen()),
         '/patient-prescriptions': (context) => const RoleGuard(
             patientOnly: true, child: PatientPrescriptionsScreen()),
         '/patient-reminders': (context) => const RoleGuard(
