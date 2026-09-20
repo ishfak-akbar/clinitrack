@@ -15,6 +15,7 @@ import '../providers/stats_provider.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/list_states.dart';
+import '../widgets/user_avatar.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -59,7 +60,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final statsState = context.watch<StatsProvider>();
     final stats = statsState.stats;
-    final doctorName = context.watch<AuthProvider>().name;
+    final auth = context.watch<AuthProvider>();
+    final doctorName = auth.name;
     final appointments = context.watch<AppointmentProvider>().appointments;
 
     final today = StatsService.todayIso();
@@ -76,9 +78,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.only(right: 16),
             child: GestureDetector(
               onTap: () => Navigator.of(context).pushNamed('/profile'),
-              child: const CircleAvatar(
+              child: UserAvatar(
+                avatarUrl: auth.avatarUrl,
+                name: doctorName,
                 radius: 18,
-                backgroundImage: AssetImage('assets/doctor.png'),
               ),
             ),
           ),

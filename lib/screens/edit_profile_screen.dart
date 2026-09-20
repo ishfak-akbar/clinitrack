@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../widgets/section_label.dart';
 import '../widgets/form_section_card.dart';
 import '../widgets/sticky_save_button.dart';
+import '../widgets/user_avatar.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -112,29 +113,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             children: [
               Center(
-                child: Stack(
-                  children: [
-                    const CircleAvatar(
+                child: Builder(
+                  builder: (context) {
+                    final auth = context.watch<AuthProvider>();
+                    return UserAvatar(
+                      avatarUrl: auth.avatarUrl,
+                      name: _nameController.text.isEmpty
+                          ? auth.name
+                          : _nameController.text,
                       radius: 48,
-                      backgroundImage: AssetImage('assets/doctor.png'),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
-                      ),
-                    ),
-                  ],
+                      editable: true,
+                      onTap: () => pickAndSaveAvatar(context),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 24),

@@ -8,6 +8,7 @@ import '../providers/patient_provider.dart';
 import '../providers/prescription_provider.dart';
 import '../providers/stats_provider.dart';
 import '../utils/app_colors.dart';
+import 'user_avatar.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -105,9 +106,10 @@ class AppDrawer extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  UserAvatar(
+                    avatarUrl: auth.avatarUrl,
+                    name: auth.name,
                     radius: 28,
-                    backgroundImage: AssetImage('assets/doctor.png'),
                   ),
                   const SizedBox(width: 14),
                   Expanded(

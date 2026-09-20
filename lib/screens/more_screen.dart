@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/more_menu_tile.dart';
+import '../widgets/user_avatar.dart';
 import 'package:provider/provider.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/auth_provider.dart';
@@ -64,6 +65,7 @@ class MoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     return AppScaffold(
       extendBody: true,
       appBar: AppBar(
@@ -78,12 +80,20 @@ class MoreScreen extends StatelessWidget {
             child: ListTile(
               onTap: () => Navigator.of(context).pushNamed('/profile'),
               contentPadding: const EdgeInsets.all(12),
-              leading: const CircleAvatar(
+              leading: UserAvatar(
+                avatarUrl: auth.avatarUrl,
+                name: auth.name,
                 radius: 26,
-                backgroundImage: AssetImage('assets/doctor.png'),
               ),
-              title: Text('Dr. Ishfak Akbar', style: Theme.of(context).textTheme.titleMedium),
-              subtitle: const Text('General Physician'),
+              title: Text(
+                auth.name.trim().isEmpty ? 'Doctor' : auth.name,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              subtitle: Text(
+                auth.specialty.trim().isEmpty
+                    ? auth.email
+                    : auth.specialty,
+              ),
               trailing: const Icon(Icons.chevron_right, color: AppColors.iconGray),
             ),
           ),
