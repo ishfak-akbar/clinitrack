@@ -34,7 +34,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _refreshStats() async {
-    await context.read<AppointmentProvider>().loadAppointments();
+    await Future.wait([
+      context.read<AppointmentProvider>().loadAppointments(),
+      context.read<FollowUpProvider>().loadFollowUps(),
+      context.read<MedicineProvider>().loadMedicines(),
+    ]);
     if (!mounted) return;
     await context.read<StatsProvider>().refresh(
           patients: context.read<PatientProvider>().patients,
@@ -56,6 +60,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return '$part, $display!';
   }
 
+  String _todayLabel() {
+    final now = DateTime.now();
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${weekdays[now.weekday - 1]} ${now.day} ${months[now.month - 1]}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final statsState = context.watch<StatsProvider>();
@@ -63,10 +77,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final auth = context.watch<AuthProvider>();
     final doctorName = auth.name;
     final appointments = context.watch<AppointmentProvider>().appointments;
+    final followUps = context.watch<FollowUpProvider>().followUps;
+    final medicines = context.watch<MedicineProvider>().medicines;
 
     final today = StatsService.todayIso();
     final todaysAppointments =
         appointments.where((a) => a.dateIso == today).take(4).toList();
+    final requestedCount =
+        appointments.where((a) => a.status == 'requested').length;
+    final overdueFollowUps = followUps
+        .where((f) => !f.isDone && f.dateIso.isNotEmpty && f.dateIso.compareTo(today) < 0)
+        .length;
+    final lowStock = medicines.where((m) => m.stock < 40).length;
 
     return AppScaffold(
       extendBody: true,
@@ -94,7 +116,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Text(
               _greeting(doctorName),
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${_todayLabel()} · ${auth.clinicAddress.isEmpty ? 'My clinic' : auth.clinicAddress}',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
             if (statsState.errorMessage.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -102,6 +131,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 message: statsState.errorMessage,
                 onRetry: _refreshStats,
                 padding: const EdgeInsets.symmetric(vertical: 4),
+              ),
+            ],
+            if (requestedCount + overdueFollowUps + lowStock > 0) ...[
+              const SizedBox(height: 12),
+              _NeedsAttentionCard(
+                requested: requestedCount,
+                overdue: overdueFollowUps,
+                lowStock: lowStock,
               ),
             ],
             const SizedBox(height: 16),
@@ -191,6 +228,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
       floatingActionButton: const AppAddFab(routeName: '/add-appointment'),
       floatingActionButtonLocation: const AppFabAboveNavLocation(),
       bottomNavigationBar: const AppBottomNav(currentIndex: 0),
+    );
+  }
+}
+
+class _NeedsAttentionCard extends StatelessWidget {
+  final int requested;
+  final int overdue;
+  final int lowStock;
+
+  const _NeedsAttentionCard({
+    required this.requested,
+    required this.overdue,
+    required this.lowStock,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 4, left: 4),
+              child: Text(
+                'Needs attention',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
+            if (requested > 0)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.mark_email_unread_outlined,
+                    color: Color(0xFF3B82F6)),
+                title: Text('$requested booking request${requested == 1 ? '' : 's'}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/appointments'),
+              ),
+            if (overdue > 0)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.schedule_outlined,
+                    color: AppColors.followUpOrange),
+                title: Text('$overdue overdue follow-up${overdue == 1 ? '' : 's'}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/follow-ups'),
+              ),
+            if (lowStock > 0)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.inventory_2_outlined,
+                    color: AppColors.errorRed),
+                title: Text('$lowStock low-stock medicine${lowStock == 1 ? '' : 's'}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/medicine-list'),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

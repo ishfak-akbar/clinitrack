@@ -80,17 +80,6 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Divider(),
-                  MoreMenuTile(
-                    icon: Icons.backup_outlined,
-                    title: 'Data Backup',
-                    subtitle: 'Backup & Restore',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Backup & Restore coming soon')),
-                      );
-                    },
-                  ),
                 ],
               ),
             ),

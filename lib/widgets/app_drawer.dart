@@ -143,8 +143,8 @@ class AppDrawer extends StatelessWidget {
                   _navTile(context, icon: Icons.dashboard_outlined, label: 'Dashboard', routeName: '/dashboard'),
                   _navTile(context, icon: Icons.people_outline, label: 'Patients', routeName: '/patient-list'),
                   _navTile(context, icon: Icons.event_note_outlined, label: 'Appointments', routeName: '/appointments'),
-                  _navTile(context, icon: Icons.receipt_long_outlined, label: 'Add Prescription', routeName: '/add-prescription'),
-                  _navTile(context, icon: Icons.schedule_outlined, label: 'Follow-up', routeName: '/follow-up'),
+                  _navTile(context, icon: Icons.receipt_long_outlined, label: 'New prescription', routeName: '/add-prescription'),
+                  _navTile(context, icon: Icons.schedule_outlined, label: 'New follow-up', routeName: '/follow-up'),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: Divider(height: 1),
