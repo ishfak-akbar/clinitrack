@@ -1,10 +1,8 @@
 # 🩺 CliniTrack
 
-**Modern Flutter Clinic Management App for Doctors**
+**Clinic management app for doctors and patients — Flutter + Supabase**
 
-CliniTrack is a clean, offline-first mobile application designed for physicians to efficiently manage their clinic operations. From patient records and appointments to prescriptions, medicine inventory, and follow-ups — everything is organized in one beautiful, easy-to-use interface with full light & dark theme support.
-
-> **Note:** CliniTrack is currently a UI-focused project that uses local dummy data and simulated authentication. No backend or real medical database is currently connected.
+CliniTrack gives doctors a full practice workspace (patients, appointments, prescriptions, follow-ups, medicine inventory, reports) and gives patients a self-service portal (book visits, track approvals, view prescriptions and reminders). It runs **offline-first**: with Supabase configured it syncs to the cloud; without keys it falls back to on-device storage, so a fresh clone works immediately.
 
 ---
 
@@ -47,171 +45,116 @@ CliniTrack is a clean, offline-first mobile application designed for physicians 
 
 ## ✨ Features
 
-### 🔐 Authentication & Session
-- Secure login and registration for doctors
-- Persistent session using SharedPreferences
-- Automatic redirect based on login state (Splash screen)
+### 👨‍⚕️ Doctor portal
+- **Dashboard** — greeting with date + clinic, stat cards (today's appointments, patients, follow-ups due), a *Needs attention* strip (booking requests, overdue follow-ups, low stock), today's list
+- **Patients** — searchable list, detailed add form, full medical record (history, allergies, prescriptions, visit history, file attachments via Supabase Storage)
+- **Appointments** — status filters (requested / scheduled / completed / cancelled), approve-or-decline patient requests, tap through to the patient record
+- **Prescriptions & follow-ups** — write prescriptions, schedule reminders, track pending/done
+- **Medicine inventory** — stock levels with low-stock flags, add medicines, order stock
+- **Reports** — clinic overview, gender and blood-group distributions
+- **Profile** — per-user photo (camera/gallery, cloud or on-device), qualifications, experience, clinic address, bio
 
-### 🏠 Dashboard
-- Personalized greeting
-- Quick statistics cards:
-  - Today’s Appointments
-  - Total Patients
-  - Follow-ups Due
-- Today’s appointment list with quick overview
+### 🧑 Patient portal
+- **My Care home** — welcome banner, approval outcomes (confirmed / awaiting / declined), appointments, prescriptions, reminders, shared bottom navigation
+- **Book a visit** — doctor directory cards with photo banner, specialty, qualifications and clinic; 9 AM–5 PM slot picker (past slots disabled); confirm-before-send summary; duplicate-request guard
+- **My prescriptions / reminders** — read-only views of own data, cancel bookings with confirmation
+- **Health profile** — edit own linked demographics (name, age, gender, blood group, history, allergies)
 
-### 👥 Patient Management
-- Searchable patient list
-- Add new patients with detailed information
-- View complete patient details
-- Expandable medical records section
-
-### 📅 Appointments
-- View all appointments
-- Schedule new appointments
-- Clean appointment cards with date, time & patient info
-
-### 💊 Prescriptions
-- Create and manage prescriptions for patients
-- Easy-to-use prescription form
-
-### 🔔 Follow-ups
-- Track pending and upcoming follow-up visits
-- Clear visual indicators for due follow-ups
-
-### 📦 Medicine Management
-- Browse medicine inventory
-- Order new medicines
-- View medicine records
-
-### 📊 Reports
-- Clinic overview with key metrics
-- Total patients, appointments, and other statistics
-
-### 👤 Profile & Settings
-- View and edit doctor profile (name, specialty, license, qualifications, experience, clinic address, bio)
-- Light / Dark mode toggle
-- Clean settings screen
-
-### 🎨 UI / UX
-- Modern teal-based design system
-- Fully responsive light & dark themes
-- Bottom navigation + side drawer
-- Consistent cards, chips, and form sections
-- Floating Action Button for quick actions
+### 🔐 Auth & data
+- Email + password auth with **Doctor / Patient roles** and role-based routing + route guards
+- Supabase tables with per-user RLS; patient bookings link doctor ↔ patient rows
+- Offline-first fallback (SharedPreferences + local files) when no backend keys are present
+- Light / dark themes, glass bottom navigation, gradient app shell
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer              | Technology                          |
-|--------------------|-------------------------------------|
-| Framework          | Flutter                             |
-| Language           | Dart                                |
-| State Management   | Provider (`ChangeNotifier`)         |
-| Local Storage      | SharedPreferences                   |
-| Architecture       | Feature-based (screens / providers / widgets / utils) |
-| Theming            | Custom light & dark themes          |
+| Layer            | Technology                                              |
+|------------------|---------------------------------------------------------|
+| Framework        | Flutter (Dart `^3.11.4`)                                |
+| State            | Provider (`ChangeNotifier` × 8)                         |
+| Backend          | Supabase (Auth, Postgres + RLS, Storage)                |
+| Local fallback   | SharedPreferences, on-device files                      |
+| Media            | `image_picker`, `file_picker`, `url_launcher`           |
+| Architecture     | Screens / providers / repositories / models / services / widgets |
+| Tests            | `flutter_test` — unit + widget (`test/`)                |
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Flutter SDK (3.x or higher)
+- Flutter SDK (3.x)
+- A Supabase project (only needed for cloud sync — skip for local mode)
 - Android Studio / VS Code with Flutter & Dart extensions
-- An Android/iOS emulator or physical device
 
-### Installation
-
+### 1. Clone & install
 ```bash
-# 1. Clone the repository
 git clone https://github.com/your-username/cliniTrack.git
 cd cliniTrack
-
-# 2. Install dependencies
 flutter pub get
-
-# 3. Run the app
-flutter run
-
 ```
+
+### 2. Database (Supabase Dashboard > SQL Editor, in this order)
+1. `supabase/schema.sql` — tables, RLS, signup trigger
+2. `supabase/storage.sql` — `avatars` (public read) + `attachments` (private) buckets and policies
+3. `supabase/patient_portal.sql` — patient linking, `requested` status, doctors directory
+
+Under **Authentication > Providers > Email**, turn email confirmation **OFF** for instant sign-in (the app also handles the confirm-by-email flow).
+
+### 3. Environment
+```bash
+cp .env.example .env.dev   # then fill in your project keys
+```
+| Variable | Source |
+|---|---|
+| `SUPABASE_URL` | Supabase Dashboard > Settings > API |
+| `SUPABASE_ANON_KEY` | Supabase Dashboard > Settings > API (anon/public) |
+| `APP_ENV` | `dev` (default) or `prod` |
+
+Resolution order: `--dart-define` (CI) → `.env.<APP_ENV>` → `.env`. Never commit real keys (`.env*` is gitignored).
+
+### 4. Run / test / build
+```bash
+flutter run                  # dev, local or Supabase depending on env
+flutter test                 # 32 unit + widget tests
+flutter analyze
+flutter build apk --release  # debug-signed unless android/key.properties exists
+```
+
+### Store release signing (Android)
+```bash
+cp android/key.properties.example android/key.properties  # fill in, never commit
+keytool -genkeypair -v -keystore android/clinitrack-release.jks \
+  -alias clinitrack -keyalg RSA -keysize 2048 -validity 10000
+```
+
+---
 
 ## 📁 Project Structure
 
 ```text
 clinitrack/
-├── android/                    # Android platform files
-├── assets/                     # App assets
-│   ├── cliniTrackIcon.png
-│   └── doctor.png
-├── lib/                        # Main application code
-│   ├── main.dart               # App entry point + MultiProvider setup
-│   ├── providers/
-│   │   ├── auth_provider.dart             # Login, session & profile
-│   │   ├── patient_provider.dart          # Patient data
-│   │   ├── appointment_provider.dart      # Appointments
-│   │   ├── prescription_provider.dart     # Prescriptions
-│   │   ├── medicine_provider.dart         # Medicines
-│   │   └── settings_provider.dart         # Theme & settings
-│   ├── screens/
-│   │   ├── splash_screen.dart
-│   │   ├── login_screen.dart
-│   │   ├── registration_screen.dart
-│   │   ├── dashboard_screen.dart
-│   │   ├── patient_list_screen.dart
-│   │   ├── add_patient_screen.dart
-│   │   ├── patient_details_screen.dart
-│   │   ├── appointments_screen.dart
-│   │   ├── add_appointment_screen.dart
-│   │   ├── add_prescription_screen.dart
-│   │   ├── follow_up_screen.dart
-│   │   ├── medicine_list_screen.dart
-│   │   ├── order_medicine_screen.dart
-│   │   ├── reports_screen.dart
-│   │   ├── profile_screen.dart
-│   │   ├── edit_profile_screen.dart
-│   │   ├── settings_screen.dart
-│   │   └── more_screen.dart
-│   ├── widgets/                # Reusable components
-│   │   ├── app_scaffold.dart
-│   │   ├── app_drawer.dart
-│   │   ├── app_bottom_nav.dart
-│   │   ├── dashboard_stat_card.dart
-│   │   ├── patient_list_tile.dart
-│   │   ├── appointment_list_tile.dart
-│   │   └── ...
-│   └── utils/
-│       ├── app_colors.dart     # Color palette
-│       └── app_theme.dart      # Light & Dark themes
-├── screenshots/                # App screenshots for README
-├── test/                       # Unit & widget tests
-├── web/                        # Web platform files
-├── windows/                    # Windows platform files
-├── pubspec.yaml                # Project dependencies
+├── lib/
+│   ├── main.dart               # entry + MultiProvider + role-guarded routes
+│   ├── config/supabase_config.dart
+│   ├── models/                 # patient, appointment, prescription, medicine, follow_up
+│   ├── providers/              # auth, patient, appointment, prescription,
+│   │                           # medicine, follow_up, settings, stats
+│   ├── repositories/           # all Supabase access (providers stay UI-state only)
+│   ├── services/               # stats_service (server counts + offline compute),
+│   │                           # storage_service (avatars + attachments)
+│   ├── screens/                # 24 routes: splash, login/register, dashboard,
+│   │                           # doctor flows, 5 patient-portal screens, profile/settings
+│   ├── widgets/                # app_scaffold/drawer/nav, user_avatar, doctor_card,
+│   │                           # patient_bottom_nav, role_guard, list states, form kit
+│   └── utils/                  # app_colors, app_theme, app_env, app_logger
+├── supabase/                   # schema.sql, storage.sql, patient_portal.sql (run in order)
+├── test/                       # models, stats, booking rules, portal widgets
+├── screenshots/
 └── README.md
-
 ```
----
-
-## 📱 Screens Overview
-
-| Screen                | Purpose                                      |
-|-----------------------|----------------------------------------------|
-| Splash                | Session check + load all local data          |
-| Login / Registration  | Doctor authentication                        |
-| Dashboard             | Overview + today’s appointments              |
-| Patient List          | Search & browse patients                     |
-| Add / Details Patient | Create & view full patient records           |
-| Appointments          | Manage clinic appointments                   |
-| Add Prescription      | Write prescriptions                          |
-| Follow-up             | Track pending follow-ups                     |
-| Medicine List         | Inventory overview                           |
-| Order Medicine        | Request new stock                            |
-| Reports               | Clinic performance statistics                |
-| Profile               | Doctor information                           |
-| Edit Profile          | Update personal & professional details       |
-| Settings              | Theme toggle and app preferences             |
 
 ---
 
@@ -224,28 +167,11 @@ clinitrack/
 
 ---
 
----
-## 🔮 Future Improvements
-
-Possible future improvements include:
-
-- Backend and database integration
-- Real authentication
-- Firebase or REST API integration
-- User roles such as Doctor, Nurse, and Admin
-- Appointment reminders and notifications
-- Advanced search and filtering
-- PDF prescription generation
-- Medical report uploads
-- Analytics and reports
-
----
-
 ## ⚠️ Disclaimer
 
-CliniTrack is an educational and demonstration project. All patient information used in the application is dummy data and should not be used for real medical purposes.
+CliniTrack is an educational and demonstration project. Do not use it for real medical purposes without proper clinical validation, security review, and compliance work.
 
 ## 👨‍💻 Author
 
-**Ishfak Akbar Nahian**  
+**Ishfak Akbar Nahian**
 Aspiring Software Engineer and Flutter Developer
