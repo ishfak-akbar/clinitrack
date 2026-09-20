@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/prescription_provider.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/list_states.dart';
+import '../widgets/patient_bottom_nav.dart';
 
 /// Part 5: patient read-only full prescription list.
 class PatientPrescriptionsScreen extends StatefulWidget {
@@ -25,7 +26,9 @@ class _PatientPrescriptionsScreenState
     final items = provider.prescriptions;
 
     return AppScaffold(
+      extendBody: true,
       appBar: AppBar(title: const Text('My prescriptions')),
+      bottomNavigationBar: const PatientBottomNav(currentIndex: 2),
       body: Column(
         children: [
           if (provider.errorMessage.isNotEmpty)
@@ -56,7 +59,7 @@ class _PatientPrescriptionsScreenState
                           physics:
                               const AlwaysScrollableScrollPhysics(),
                           padding:
-                              const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                              const EdgeInsets.fromLTRB(16, 8, 16, 120),
                           itemCount: items.length,
                           itemBuilder: (context, i) {
                             final p = items[i];

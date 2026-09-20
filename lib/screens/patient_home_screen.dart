@@ -10,6 +10,7 @@ import '../providers/prescription_provider.dart';
 import '../providers/stats_provider.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/list_states.dart';
+import '../widgets/patient_bottom_nav.dart';
 
 /// Part 5: patient portal home — read-only views of own bookings,
 /// prescriptions and reminders, plus entry to booking and logout.
@@ -94,6 +95,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         .length;
 
     return AppScaffold(
+      extendBody: true,
       appBar: AppBar(
         title: const Text('My Care'),
         actions: [
@@ -119,20 +121,14 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Book visit'),
       ),
+      floatingActionButtonLocation: patientFabLocation,
+      bottomNavigationBar: const PatientBottomNav(currentIndex: 0),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
           children: [
-            Text(
-              'Hello, ${auth.name.trim().isEmpty ? 'there' : auth.name.trim()}!',
-              style: theme.textTheme.titleLarge,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Your visits, prescriptions and reminders in one place.',
-              style: theme.textTheme.bodyMedium,
-            ),
+            _WelcomeBanner(name: auth.name),
             const SizedBox(height: 16),
             if (appointments.errorMessage.isNotEmpty)
               ListErrorBanner(
@@ -335,6 +331,79 @@ class _FeedbackBanner extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _WelcomeBanner extends StatelessWidget {
+  final String name;
+
+  const _WelcomeBanner({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final display =
+        name.trim().isEmpty ? 'there' : name.trim().split(' ').first;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [const Color(0xFF0E7C7B), const Color(0xFF155E5D)]
+              : [const Color(0xFF0E7C7B), const Color(0xFF14A8A6)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0E7C7B).withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.favorite_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hello, $display!',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Your visits, prescriptions and reminders in one place.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

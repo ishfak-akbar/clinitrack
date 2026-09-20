@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/follow_up_provider.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/list_states.dart';
+import '../widgets/patient_bottom_nav.dart';
 
 /// Part 5: patient reminders with Pending/Done sections (toggle allowed).
 class PatientRemindersScreen extends StatefulWidget {
@@ -25,7 +26,9 @@ class _PatientRemindersScreenState extends State<PatientRemindersScreen> {
     final done = provider.completed;
 
     return AppScaffold(
+      extendBody: true,
       appBar: AppBar(title: const Text('My reminders')),
+      bottomNavigationBar: const PatientBottomNav(currentIndex: 3),
       body: Column(
         children: [
           if (provider.errorMessage.isNotEmpty)
@@ -59,7 +62,7 @@ class _PatientRemindersScreenState extends State<PatientRemindersScreen> {
                           physics:
                               const AlwaysScrollableScrollPhysics(),
                           padding:
-                              const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                              const EdgeInsets.fromLTRB(16, 8, 16, 120),
                           children: [
                             if (pending.isNotEmpty)
                               _Section(
