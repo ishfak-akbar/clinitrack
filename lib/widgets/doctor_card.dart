@@ -368,3 +368,93 @@ void showDoctorProfileSheet(
     ),
   );
 }
+
+/// Compact selectable row for step flows (e.g. Book visit step 1):
+/// avatar + name/specialty, radio indicator, chevron to view profile.
+class DoctorSelectTile extends StatelessWidget {
+  final DoctorDirectoryEntry doctor;
+  final bool selected;
+  final VoidCallback? onSelect;
+  final VoidCallback? onViewProfile;
+
+  const DoctorSelectTile({
+    super.key,
+    required this.doctor,
+    this.selected = false,
+    this.onSelect,
+    this.onViewProfile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accent =
+        isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: selected ? accent : Colors.transparent,
+          width: selected ? 2 : 0,
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onSelect,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              UserAvatar(
+                avatarUrl: doctor.avatarUrl,
+                name: doctor.name,
+                radius: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      doctor.name.isEmpty ? 'Doctor' : doctor.name,
+                      style: theme.textTheme.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      [
+                        doctor.specialty,
+                        doctor.experienceYears.isEmpty
+                            ? ''
+                            : '${doctor.experienceYears} yrs exp',
+                      ].where((e) => e.isNotEmpty).join(' · '),
+                      style: theme.textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                selected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_unchecked,
+                color: selected ? accent : theme.disabledColor,
+              ),
+              IconButton(
+                tooltip: 'View profile',
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.chevron_right),
+                onPressed: onViewProfile,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

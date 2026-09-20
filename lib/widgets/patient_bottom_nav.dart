@@ -19,7 +19,9 @@ class PatientBottomNav extends StatelessWidget {
         Navigator.of(context).pushReplacementNamed('/patient-home');
         break;
       case 1:
-        Navigator.of(context).pushReplacementNamed('/patient-book');
+        // Push (not replace): Book is a form, so the AppBar back button
+        // must return to the tab the patient came from.
+        Navigator.of(context).pushNamed('/patient-book');
         break;
       case 2:
         Navigator.of(context).pushReplacementNamed('/patient-prescriptions');
