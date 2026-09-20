@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/patient_provider.dart';
 import '../repositories/auth_repository.dart';
 import '../widgets/app_scaffold.dart';
+import '../widgets/doctor_card.dart';
 import '../widgets/form_section_card.dart';
 import '../widgets/section_label.dart';
 import '../widgets/sticky_save_button.dart';
@@ -24,7 +25,7 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
   final _reasonController = TextEditingController();
   final _authRepo = AuthRepository();
 
-  List<({String id, String name, String specialty})> _doctors = [];
+  List<DoctorDirectoryEntry> _doctors = [];
   String? _selectedDoctorId;
   DateTime? _date;
   TimeOfDay? _time;
@@ -55,10 +56,14 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
     try {
       final rows = await _authRepo.fetchDoctors();
       if (!mounted) return;
+      // Local/offline mode has no directory — show sample cards so new
+      // users instantly understand the booking flow.
+      final effective =
+          rows.isEmpty && !_authRepo.useBackend ? _demoDoctors : rows;
       setState(() {
-        _doctors = rows;
-        if (_selectedDoctorId == null && rows.isNotEmpty) {
-          _selectedDoctorId = rows.first.id;
+        _doctors = effective;
+        if (_selectedDoctorId == null && effective.isNotEmpty) {
+          _selectedDoctorId = effective.first.id;
         }
       });
     } catch (_) {
@@ -69,6 +74,36 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
       if (mounted) setState(() => _loadingDoctors = false);
     }
   }
+
+  List<DoctorDirectoryEntry> get _demoDoctors => const [
+        DoctorDirectoryEntry(
+          id: 'demo-1',
+          name: 'Dr. Sarah Rahman',
+          specialty: 'Cardiology',
+          qualifications: 'MBBS, MD (Cardiology)',
+          experienceYears: '8',
+          clinicAddress: 'Zindabazar, Sylhet',
+          bio: 'Heart care, hypertension and preventive cardiology.',
+        ),
+        DoctorDirectoryEntry(
+          id: 'demo-2',
+          name: 'Dr. Tanvir Ahmed',
+          specialty: 'General Physician',
+          qualifications: 'MBBS, FCPS (Medicine)',
+          experienceYears: '5',
+          clinicAddress: 'Ambarkhana, Sylhet',
+          bio: 'Fever, diabetes follow-ups and general consultations.',
+        ),
+        DoctorDirectoryEntry(
+          id: 'demo-3',
+          name: 'Dr. Nabila Karim',
+          specialty: 'Pediatrics',
+          qualifications: 'MBBS, DCH',
+          experienceYears: '6',
+          clinicAddress: 'Mirboxtula, Sylhet',
+          bio: 'Child health, vaccination and growth monitoring.',
+        ),
+      ];
 
   Future<void> _pickDate() async {
     final today = DateTime.now();
@@ -109,7 +144,7 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedDoctorId == null) {
+    if (_selectedDoctorId == null || _doctors.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please choose a doctor')),
       );
@@ -218,7 +253,8 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
             children: [
               FormSectionCard(
                 children: [
-                  const SectionLabel('Doctor', icon: Icons.medical_services_outlined),
+                  const SectionLabel('Choose your doctor',
+                      icon: Icons.medical_services_outlined),
                   const SizedBox(height: 8),
                   if (_loadingDoctors)
                     const Center(
@@ -237,35 +273,30 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
                         ),
                       ],
                     )
-                    else if (_doctors.isEmpty)
-                      const Text(
-                        'No doctors found yet. Ask your clinic to create a doctor account first.',
-                      )
-                    else
-                      DropdownButtonFormField<String>(
-                      initialValue: _selectedDoctorId,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        hintText: 'Choose doctor',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      items: _doctors
-                          .map(
-                            (d) => DropdownMenuItem(
-                              value: d.id,
-                              child: Text(
-                                d.specialty.isEmpty
-                                    ? d.name
-                                    : '${d.name} · ${d.specialty}',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) =>
-                          setState(() => _selectedDoctorId = v),
-                      validator: (v) =>
-                          v == null ? 'Please choose a doctor' : null,
+                  else if (_doctors.isEmpty)
+                    const Text(
+                      'No doctors found yet. Ask your clinic to create a doctor account first.',
+                    )
+                  else
+                    Column(
+                      children: [
+                        for (final d in _doctors) ...[
+                          DoctorCard(
+                            doctor: d,
+                            selected: _selectedDoctorId == d.id,
+                            onSelect: () =>
+                                setState(() => _selectedDoctorId = d.id),
+                            onViewProfile: () =>
+                                showDoctorProfileSheet(context, d),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                        if (_selectedDoctorId == null)
+                          const Text(
+                            'Please choose a doctor',
+                            style: TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                      ],
                     ),
                   const SizedBox(height: 16),
                   const SectionLabel('Reason', icon: Icons.notes_outlined),

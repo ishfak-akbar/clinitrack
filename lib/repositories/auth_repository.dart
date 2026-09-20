@@ -90,19 +90,28 @@ class AuthRepository {
 
   /// Doctors directory for patient bookings (Part 5).
   /// RLS (`profiles_doctor_directory`) exposes doctors to signed-in users.
-  Future<List<({String id, String name, String specialty})>>
-      fetchDoctors() async {
+  /// Includes profile fields so patients see a rich doctor card.
+  Future<List<DoctorDirectoryEntry>> fetchDoctors() async {
+    // Offline / local mode: repository has no backend — caller shows
+    // demo directory instead of failing.
+    if (!useBackend) return [];
     final rows = await SupabaseConfig.client
         .from('profiles')
-        .select('id, full_name, specialty')
+        .select(
+            'id, full_name, specialty, avatar_url, qualifications, experience_years, clinic_address, bio')
         .eq('role', 'Doctor')
         .order('full_name', ascending: true);
     return (rows as List).map((r) {
       final row = r as Map<String, dynamic>;
-      return (
-        id: row['id'] as String,
+      return DoctorDirectoryEntry(
+        id: (row['id'] as String?) ?? '',
         name: ((row['full_name'] as String?) ?? '').trim(),
         specialty: ((row['specialty'] as String?) ?? '').trim(),
+        avatarUrl: ((row['avatar_url'] as String?) ?? '').trim(),
+        qualifications: ((row['qualifications'] as String?) ?? '').trim(),
+        experienceYears: ((row['experience_years'] as String?) ?? '').trim(),
+        clinicAddress: ((row['clinic_address'] as String?) ?? '').trim(),
+        bio: ((row['bio'] as String?) ?? '').trim(),
       );
     }).toList();
   }
@@ -149,4 +158,27 @@ class AuthRepository {
         .update(fields)
         .eq('id', user.id);
   }
+}
+
+/// One row of the doctors directory shown to patients.
+class DoctorDirectoryEntry {
+  final String id;
+  final String name;
+  final String specialty;
+  final String avatarUrl;
+  final String qualifications;
+  final String experienceYears;
+  final String clinicAddress;
+  final String bio;
+
+  const DoctorDirectoryEntry({
+    required this.id,
+    required this.name,
+    this.specialty = '',
+    this.avatarUrl = '',
+    this.qualifications = '',
+    this.experienceYears = '',
+    this.clinicAddress = '',
+    this.bio = '',
+  });
 }
