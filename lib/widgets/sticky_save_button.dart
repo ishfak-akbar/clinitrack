@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
 
-/// Shared sticky "Save" button used in the bottomNavigationBar slot
-/// across every "Add ___" form screen. Keeps loading-state spinner
-/// and styling consistent and centrally editable.
+/// Shared sticky primary action used in the bottomNavigationBar slot
+/// across every form screen. Styling comes from the app theme so all
+/// primary actions look identical; only loading state is handled here.
 class StickySaveButton extends StatelessWidget {
   final bool isSaving;
   final VoidCallback? onPressed;
@@ -18,7 +17,6 @@ class StickySaveButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -26,21 +24,13 @@ class StickySaveButton extends StatelessWidget {
           height: 52,
           child: ElevatedButton(
             onPressed: isSaving ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal,
-              foregroundColor: isDark ? AppColors.darkBackground : Colors.white,
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
             child: isSaving
                 ? SizedBox(
               width: 24,
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                color: isDark ? AppColors.darkBackground : Colors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
               ),
             )
                 : Text(

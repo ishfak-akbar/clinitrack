@@ -5,6 +5,7 @@ import '../widgets/app_bottom_nav.dart';
 import '../widgets/app_add_fab.dart';
 import '../widgets/appointment_list_tile.dart';
 import '../widgets/list_states.dart';
+import '../widgets/themed_choice_chip.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/patient_provider.dart';
 
@@ -33,13 +34,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Widget _filterChip(String label, FilterOption value) {
-    final bool isSelected = _filter == value;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (_) => setState(() => _filter = value),
+      child: ThemedChoiceChip(
+        label: label,
+        isSelected: _filter == value,
+        onSelected: () => setState(() => _filter = value),
       ),
     );
   }

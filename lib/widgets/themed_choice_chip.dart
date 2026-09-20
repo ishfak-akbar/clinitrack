@@ -4,7 +4,7 @@ import '../utils/app_colors.dart';
 class ThemedChoiceChip extends StatelessWidget {
   final String label;
   final bool isSelected;
-  final VoidCallback onSelected;
+  final VoidCallback? onSelected;
 
   const ThemedChoiceChip({
     super.key,
@@ -22,12 +22,18 @@ class ThemedChoiceChip extends StatelessWidget {
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      onSelected: (_) => onSelected(),
+      onSelected: onSelected == null ? null : (_) => onSelected!(),
       selectedColor: accent.withValues(alpha: 0.15),
       backgroundColor: isDark ? AppColors.darkCard : Colors.grey.shade100,
       labelStyle: TextStyle(
         color: isSelected ? accent : theme.textTheme.bodyLarge?.color,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected ? accent : Colors.transparent,
+        ),
       ),
     );
   }

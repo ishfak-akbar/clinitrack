@@ -9,6 +9,9 @@ class SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent =
+        isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10, top: 2),
       child: Row(
@@ -17,7 +20,7 @@ class SectionLabel extends StatelessWidget {
             Icon(
               icon,
               size: 18,
-              color: AppColors.primaryTeal,
+              color: accent,
             ),
             const SizedBox(width: 8),
           ],
@@ -25,7 +28,7 @@ class SectionLabel extends StatelessWidget {
             text,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.primaryTeal, // keeps your main color
+              color: accent, // keeps your main color
               letterSpacing: 0.2,
             ),
           ),
