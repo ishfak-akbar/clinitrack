@@ -139,6 +139,104 @@ class AppTheme {
         backgroundColor: AppColors.primaryTeal,
         foregroundColor: AppColors.cardWhite,
       ),
+
+      // ---------- Selection chips (filters, slots) ----------
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.backgroundLight,
+        selectedColor: AppColors.primaryTeal.withValues(alpha: 0.14),
+        disabledColor: AppColors.backgroundLight,
+        checkmarkColor: AppColors.primaryTeal,
+        labelStyle: const TextStyle(
+          color: AppColors.textDark,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+        secondaryLabelStyle: const TextStyle(
+          color: AppColors.primaryTeal,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.borderGray),
+        ),
+        side: const BorderSide(color: AppColors.borderGray),
+      ),
+
+      // ---------- Dialogs / bottom sheets / snackbars ----------
+      dialogTheme: const DialogThemeData(
+        backgroundColor: AppColors.cardWhite,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(24)),
+        ),
+        titleTextStyle: TextStyle(
+          color: AppColors.textDark,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+        contentTextStyle: TextStyle(
+          color: AppColors.textGray,
+          fontSize: 14,
+        ),
+      ),
+
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.cardWhite,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: AppColors.cardWhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+      ),
+
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.textDark,
+        contentTextStyle: const TextStyle(
+          color: AppColors.cardWhite,
+          fontSize: 14,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        iconColor: AppColors.primaryTeal,
+        titleTextStyle: TextStyle(
+          color: AppColors.textDark,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        subtitleTextStyle: TextStyle(
+          color: AppColors.textGray,
+          fontSize: 13,
+        ),
+      ),
+
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.primaryTeal,
+      ),
+
+      datePickerTheme: const DatePickerThemeData(
+        backgroundColor: AppColors.cardWhite,
+        surfaceTintColor: Colors.transparent,
+        headerBackgroundColor: AppColors.primaryTeal,
+        headerForegroundColor: AppColors.cardWhite,
+      ),
+
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: AppColors.cardWhite,
+        hourMinuteTextColor: AppColors.textDark,
+        hourMinuteColor: AppColors.primaryTeal.withValues(alpha: 0.12),
+        dayPeriodTextColor: AppColors.textGray,
+        dialHandColor: AppColors.primaryTeal,
+        dialBackgroundColor: AppColors.primaryTeal.withValues(alpha: 0.12),
+        entryModeIconColor: AppColors.primaryTeal,
+      ),
     );
   }
 
@@ -270,6 +368,108 @@ class AppTheme {
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.primaryTealAccent,
         foregroundColor: AppColors.darkBackground,
+      ),
+
+      // ---------- Selection chips (filters, slots) ----------
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.darkCard,
+        selectedColor:
+            AppColors.primaryTealAccent.withValues(alpha: 0.18),
+        disabledColor: AppColors.darkCard,
+        checkmarkColor: AppColors.primaryTealAccent,
+        labelStyle: const TextStyle(
+          color: AppColors.darkTextPrimary,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+        secondaryLabelStyle: const TextStyle(
+          color: AppColors.primaryTealAccent,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.darkBorder),
+        ),
+        side: const BorderSide(color: AppColors.darkBorder),
+      ),
+
+      // ---------- Dialogs / bottom sheets / snackbars ----------
+      dialogTheme: const DialogThemeData(
+        backgroundColor: AppColors.darkCard,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(24)),
+        ),
+        titleTextStyle: TextStyle(
+          color: AppColors.darkTextPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+        contentTextStyle: TextStyle(
+          color: AppColors.darkTextSecondary,
+          fontSize: 14,
+        ),
+      ),
+
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.darkCard,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: AppColors.darkCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+      ),
+
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.darkCard,
+        contentTextStyle: const TextStyle(
+          color: AppColors.darkTextPrimary,
+          fontSize: 14,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.darkBorder),
+        ),
+      ),
+
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        iconColor: AppColors.primaryTealAccent,
+        titleTextStyle: TextStyle(
+          color: AppColors.darkTextPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        subtitleTextStyle: TextStyle(
+          color: AppColors.darkTextSecondary,
+          fontSize: 13,
+        ),
+      ),
+
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.primaryTealAccent,
+      ),
+
+      datePickerTheme: const DatePickerThemeData(
+        backgroundColor: AppColors.darkCard,
+        surfaceTintColor: Colors.transparent,
+        headerBackgroundColor: AppColors.primaryTeal,
+        headerForegroundColor: Colors.white,
+      ),
+
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: AppColors.darkCard,
+        hourMinuteTextColor: AppColors.darkTextPrimary,
+        hourMinuteColor:
+            AppColors.primaryTealAccent.withValues(alpha: 0.16),
+        dayPeriodTextColor: AppColors.darkTextSecondary,
+        dialHandColor: AppColors.primaryTealAccent,
+        dialBackgroundColor:
+            AppColors.primaryTealAccent.withValues(alpha: 0.16),
+        entryModeIconColor: AppColors.primaryTealAccent,
       ),
     );
   }
