@@ -1,6 +1,7 @@
 import 'package:clinitrack/repositories/auth_repository.dart';
 import 'package:clinitrack/widgets/doctor_card.dart';
 import 'package:clinitrack/widgets/patient_bottom_nav.dart';
+import 'package:clinitrack/widgets/status_chip.dart';
 import 'package:clinitrack/widgets/user_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,6 +92,27 @@ void main() {
       expect(selected, isTrue);
       await tester.tap(find.text('View profile'));
       expect(viewed, isTrue);
+    });
+  });
+
+  group('StatusChip (one language for both portals)', () {
+    test('labels map to patient-friendly wording', () {
+      expect(StatusChip.labelFor('scheduled'), 'Confirmed');
+      expect(StatusChip.labelFor('completed'), 'Completed');
+      expect(StatusChip.labelFor('cancelled'), 'Declined');
+      expect(StatusChip.labelFor('requested'), 'Awaiting review');
+    });
+
+    testWidgets('renders label for each status', (tester) async {
+      for (final entry in {
+        'scheduled': 'Confirmed',
+        'requested': 'Awaiting review',
+        'cancelled': 'Declined',
+      }.entries) {
+        await tester.pumpWidget(
+            _wrap(StatusChip(status: entry.key)));
+        expect(find.text(entry.value), findsOneWidget);
+      }
     });
   });
 

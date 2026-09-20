@@ -28,6 +28,14 @@ class AppointmentListTile extends StatelessWidget {
     final bool isCancelled = status == AppointmentStatus.cancelled;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
+    // Status pill that stays readable in both themes.
+    final pillColor = isCompleted
+        ? AppColors.successGreen
+        : isCancelled
+            ? (isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textGray)
+            : AppColors.warningAmber;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -75,12 +83,11 @@ class AppointmentListTile extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isCompleted
-                        ? const Color(0xFFE3F6ED)
-                        : isCancelled
-                            ? const Color(0xFFF3F4F6)
-                            : const Color(0xFFFDF0DC),
+                    color: pillColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: pillColor.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Text(
                     isCompleted
@@ -89,11 +96,7 @@ class AppointmentListTile extends StatelessWidget {
                             ? 'Cancelled'
                             : 'Scheduled',
                     style: TextStyle(
-                      color: isCompleted
-                          ? AppColors.successGreen
-                          : isCancelled
-                              ? Colors.grey
-                              : AppColors.warningAmber,
+                      color: pillColor,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),

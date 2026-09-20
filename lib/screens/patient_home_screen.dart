@@ -8,9 +8,11 @@ import '../providers/medicine_provider.dart';
 import '../providers/patient_provider.dart';
 import '../providers/prescription_provider.dart';
 import '../providers/stats_provider.dart';
+import '../utils/app_colors.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/list_states.dart';
 import '../widgets/patient_bottom_nav.dart';
+import '../widgets/status_chip.dart';
 
 /// Part 5: patient portal home — read-only views of own bookings,
 /// prescriptions and reminders, plus entry to booking and logout.
@@ -167,21 +169,21 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               if (confirmed > 0)
                 _FeedbackBanner(
                   icon: Icons.check_circle,
-                  color: Colors.green,
+                  color: AppColors.successGreen,
                   text:
                       '$confirmed visit${confirmed == 1 ? '' : 's'} confirmed by your doctor',
                 ),
               if (awaiting > 0)
                 _FeedbackBanner(
                   icon: Icons.schedule_outlined,
-                  color: Colors.amber.shade800,
+                  color: AppColors.warningAmber,
                   text:
                       '$awaiting request${awaiting == 1 ? '' : 's'} awaiting doctor review',
                 ),
               if (declined > 0)
                 _FeedbackBanner(
                   icon: Icons.cancel_outlined,
-                  color: Colors.red,
+                  color: AppColors.errorRed,
                   text:
                       '$declined request${declined == 1 ? '' : 's'} declined — try another day',
                 ),
@@ -206,19 +208,6 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             else
               ...appointments.appointments.map(
                 (a) {
-                  final statusColor = switch (a.status) {
-                    'scheduled' => Colors.green,
-                    'completed' => Colors.green.shade700,
-                    'cancelled' => Colors.red,
-                    _ => Colors.amber.shade800,
-                  };
-                  final statusLabel = switch (a.status) {
-                    'scheduled' => 'Confirmed',
-                    'completed' => 'Completed',
-                    'cancelled' => 'Declined',
-                    'requested' => 'Awaiting review',
-                    _ => a.status,
-                  };
                   return Card(
                     child: ListTile(
                       title: Text(
@@ -232,23 +221,8 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                             '${a.doctor.isEmpty ? 'Doctor' : a.doctor}'
                             '${a.reason.isEmpty ? '' : ' · ${a.reason}'}',
                           ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: statusColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              statusLabel,
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                          const SizedBox(height: 6),
+                          StatusChip(status: a.status),
                         ],
                       ),
                       isThreeLine: true,
