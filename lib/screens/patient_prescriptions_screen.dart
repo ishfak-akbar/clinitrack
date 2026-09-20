@@ -17,6 +17,13 @@ class PatientPrescriptionsScreen extends StatefulWidget {
 
 class _PatientPrescriptionsScreenState
     extends State<PatientPrescriptionsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load on entry so newly written prescriptions appear without refresh.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reload());
+  }
+
   Future<void> _reload() =>
       context.read<PrescriptionProvider>().loadPrescriptions();
 

@@ -16,6 +16,13 @@ class PatientRemindersScreen extends StatefulWidget {
 }
 
 class _PatientRemindersScreenState extends State<PatientRemindersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load on entry so reminder toggles from other sessions show up.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reload());
+  }
+
   Future<void> _reload() =>
       context.read<FollowUpProvider>().loadFollowUps();
 

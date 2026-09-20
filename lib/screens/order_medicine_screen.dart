@@ -29,6 +29,16 @@ class _OrderMedicineScreenState extends State<OrderMedicineScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // The medicine dropdown reads provider state — refresh on entry so
+    // stock numbers are current.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => context.read<MedicineProvider>().loadMedicines(),
+    );
+  }
+
+  @override
   void dispose() {
     _quantityController.dispose();
     super.dispose();

@@ -35,7 +35,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _refreshStats() async {
     await Future.wait([
+      context.read<PatientProvider>().loadPatients(),
       context.read<AppointmentProvider>().loadAppointments(),
+      context.read<PrescriptionProvider>().loadPrescriptions(),
       context.read<FollowUpProvider>().loadFollowUps(),
       context.read<MedicineProvider>().loadMedicines(),
     ]);

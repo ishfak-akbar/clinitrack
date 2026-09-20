@@ -18,6 +18,13 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    // Load on entry so the inventory never shows stale splash-time data.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reload());
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();

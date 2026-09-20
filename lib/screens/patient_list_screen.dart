@@ -19,6 +19,16 @@ class _PatientListScreenState extends State<PatientListScreen> {
   String _query = '';
 
   @override
+  void initState() {
+    super.initState();
+    // Dashboard stats come from fresh server COUNT(*) on every open,
+    // but this list only showed whatever splash loaded — so a patient
+    // created afterwards (e.g. portal signup) made the count and the
+    // list disagree until manual pull-to-refresh. Load on entry.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reload());
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();

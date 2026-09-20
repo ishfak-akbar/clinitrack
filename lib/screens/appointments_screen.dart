@@ -21,6 +21,14 @@ enum FilterOption { all, requested, scheduled, completed, cancelled }
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   FilterOption _filter = FilterOption.all;
 
+  @override
+  void initState() {
+    super.initState();
+    // Load on entry: without this the list only showed whatever splash
+    // fetched, disagreeing with fresh dashboard counts until pull-to-refresh.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reload());
+  }
+
   List<Appointment> _filteredAppointments(List<Appointment> all) {
     if (_filter == FilterOption.all) return all;
     final targetStatus = switch (_filter) {

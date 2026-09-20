@@ -14,6 +14,13 @@ class FollowUpListScreen extends StatefulWidget {
 }
 
 class _FollowUpListScreenState extends State<FollowUpListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load on entry so reminders never show stale splash-time data.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reload());
+  }
+
   Future<void> _reload() =>
       context.read<FollowUpProvider>().loadFollowUps();
 
