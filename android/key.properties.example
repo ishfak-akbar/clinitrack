@@ -1,0 +1,10 @@
+# CliniTrack Android release signing — copy to `key.properties` and fill in.
+# `key.properties` is gitignored: real secrets must never be committed.
+# Generate a keystore once with:
+#   keytool -genkeypair -v -keystore clinitrack-release.jks -alias clinitrack \
+#     -keyalg RSA -keysize 2048 -validity 10000
+# then point storeFile at it (path is relative to android/app/).
+storePassword=change-me
+keyPassword=change-me
+keyAlias=clinitrack
+storeFile=../clinitrack-release.jks

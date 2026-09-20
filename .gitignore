@@ -46,4 +46,10 @@ app.*.map.json
 
 # Env / secrets - never commit real keys
 .env
-.env.local
+.env.*
+!.env.example
+
+# Android release signing - never commit
+key.properties
+*.jks
+*.keystore

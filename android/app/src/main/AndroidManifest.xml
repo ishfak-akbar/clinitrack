@@ -1,4 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Supabase backend (auth, database, storage) needs network access.
+         Flutter only grants this in debug by default — release needs it here. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Profile photo capture. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Gallery picks + report/scan attachments (scoped by API level). -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
     <application
         android:label="CliniTrack"
         android:name="${applicationName}"
