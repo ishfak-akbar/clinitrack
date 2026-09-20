@@ -62,29 +62,12 @@ class StatsProvider extends ChangeNotifier {
     required List<FollowUp> followUps,
     required List<Medicine> medicines,
   }) {
-    final today = StatsService.todayIso();
-    final genders = {'Male': 0, 'Female': 0, 'Other': 0};
-    final blood = {for (final g in StatsService.bloodGroups) g: 0};
-    for (final p in patients) {
-      if (genders.containsKey(p.gender)) {
-        genders[p.gender] = genders[p.gender]! + 1;
-      }
-      if (blood.containsKey(p.bloodGroup)) {
-        blood[p.bloodGroup] = blood[p.bloodGroup]! + 1;
-      }
-    }
-    return ClinicStats(
-      totalPatients: patients.length,
-      totalAppointments: appointments.length,
-      todayAppointments:
-          appointments.where((a) => a.dateIso == today).length,
-      totalPrescriptions: prescriptions.length,
-      followUpsDue: followUps.where((f) => !f.isDone).length,
-      lowStockMedicines: medicines
-          .where((m) => m.stock < StatsService.lowStockThreshold)
-          .length,
-      genderCounts: genders,
-      bloodGroupCounts: blood,
+    return StatsService.computeLocal(
+      patients: patients,
+      appointments: appointments,
+      prescriptions: prescriptions,
+      followUps: followUps,
+      medicines: medicines,
     );
   }
 

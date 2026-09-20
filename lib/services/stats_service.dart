@@ -1,6 +1,11 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/supabase_config.dart';
+import '../models/appointment.dart';
+import '../models/follow_up.dart';
+import '../models/medicine.dart';
+import '../models/patient.dart';
+import '../models/prescription.dart';
 
 /// Server-side clinic statistics for the signed-in doctor.
 ///
@@ -45,6 +50,41 @@ class StatsService {
     return '${now.year.toString().padLeft(4, '0')}-'
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Offline/fallback computation from already-loaded lists.
+  /// Pure function (no backend/env access) so it stays unit-testable.
+  static ClinicStats computeLocal({
+    List<Patient> patients = const [],
+    List<Appointment> appointments = const [],
+    List<Prescription> prescriptions = const [],
+    List<FollowUp> followUps = const [],
+    List<Medicine> medicines = const [],
+  }) {
+    final today = todayIso();
+    final genders = {'Male': 0, 'Female': 0, 'Other': 0};
+    final blood = {for (final g in bloodGroups) g: 0};
+    for (final p in patients) {
+      if (genders.containsKey(p.gender)) {
+        genders[p.gender] = genders[p.gender]! + 1;
+      }
+      if (blood.containsKey(p.bloodGroup)) {
+        blood[p.bloodGroup] = blood[p.bloodGroup]! + 1;
+      }
+    }
+    return ClinicStats(
+      totalPatients: patients.length,
+      totalAppointments: appointments.length,
+      todayAppointments:
+          appointments.where((a) => a.dateIso == today).length,
+      totalPrescriptions: prescriptions.length,
+      followUpsDue: followUps.where((f) => !f.isDone).length,
+      lowStockMedicines: medicines
+          .where((m) => m.stock < lowStockThreshold)
+          .length,
+      genderCounts: genders,
+      bloodGroupCounts: blood,
+    );
   }
 
   /// Runs all count queries in parallel and returns the combined stats.
