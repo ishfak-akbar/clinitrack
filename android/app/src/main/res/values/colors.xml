@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- CliniTrack brand teal used for the launch splash background. -->
+    <color name="clinitrack_splash">#0E7C7B</color>
+</resources>
