@@ -5,8 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Step 17: lightweight app-wide logging + last-crash persistence.
 ///
-/// - `debug`/`info` print in debug builds only.
-/// - `warning`/`error` always print (visible in release device logs too).
+/// - `debug`/`info` record + print in debug builds only.
+/// - `warning`/`error` are always recorded in the in-memory buffer;
+///   console output is debug-only so release builds stay quiet.
 /// - `error` also persists a summary to SharedPreferences so the most
 ///   recent crash survives restarts (see Settings > Diagnostics).
 /// This is intentionally dependency-free; swap the sinks for Crashlytics
@@ -50,8 +51,10 @@ class AppLogger {
         '[${DateTime.now().toIso8601String()}][$level][$tag] $message';
     _buffer.add(line);
     if (_buffer.length > _bufferSize) _buffer.removeAt(0);
-    // ignore: avoid_print
-    print(line);
+    if (kDebugMode) {
+      // ignore: avoid_print
+      print(line);
+    }
   }
 
   static Future<void> _persist(String message) async {

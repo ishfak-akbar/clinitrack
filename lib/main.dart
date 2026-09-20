@@ -43,8 +43,8 @@ import 'widgets/role_guard.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Step 17: global crash capture — framework errors + uncaught async
-  // errors land in AppLogger (and persist the latest for Diagnostics).
+  // Global crash capture — framework errors + uncaught async errors land
+  // in AppLogger (latest error surfaced under Settings > Diagnostics).
   FlutterError.onError = (details) {
     AppLogger.error(
       'Flutter framework error',

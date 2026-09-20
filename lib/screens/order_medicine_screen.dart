@@ -95,7 +95,7 @@ class _OrderMedicineScreenState extends State<OrderMedicineScreen> {
                 const SectionLabel('Select Medicine', icon: Icons.medication_outlined),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _selectedMedicine?.id,
+                  initialValue: _selectedMedicine?.id,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     hintText: 'Choose medicine',
