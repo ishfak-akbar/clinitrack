@@ -114,15 +114,36 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
       firstDate: start,
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) setState(() => _date = picked);
+    if (picked != null) {
+      setState(() {
+        _date = picked;
+        // Clear a slot that is no longer valid for the new day.
+        if (_time != null && _isSlotDisabled(_time!)) _time = null;
+      });
+    }
   }
 
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _time ?? TimeOfDay.now(),
-    );
-    if (picked != null) setState(() => _time = picked);
+  /// Clinic slots 9:00 AM – 5:00 PM every 30 min (no free-form times,
+  /// so patients can't double-book odd hours).
+  List<TimeOfDay> get _slots => [
+        for (int m = 9 * 60; m <= 17 * 60; m += 30)
+          TimeOfDay(hour: m ~/ 60, minute: m % 60),
+      ];
+
+  bool _isTodaySelected() {
+    if (_date == null) return false;
+    final now = DateTime.now();
+    return _date!.year == now.year &&
+        _date!.month == now.month &&
+        _date!.day == now.day;
+  }
+
+  bool _isSlotDisabled(TimeOfDay slot) {
+    if (!_isTodaySelected()) return false;
+    final now = TimeOfDay.now();
+    final slotMins = slot.hour * 60 + slot.minute;
+    final nowMins = now.hour * 60 + now.minute;
+    return slotMins <= nowMins + 30; // 30-min buffer
   }
 
   String _fmtDate(DateTime d) {
@@ -142,6 +163,61 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
   String _iso(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
+  Future<void> _confirmAndSubmit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedDoctorId == null || _doctors.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please choose a doctor')),
+      );
+      return;
+    }
+    if (_date == null || _time == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please pick a date and time slot')),
+      );
+      return;
+    }
+    final doctor = _doctors.firstWhere(
+      (d) => d.id == _selectedDoctorId,
+      orElse: () => _doctors.first,
+    );
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm booking request'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(doctor.name,
+                style: const TextStyle(fontWeight: FontWeight.w700)),
+            if (doctor.specialty.isNotEmpty) Text(doctor.specialty),
+            const SizedBox(height: 8),
+            Text('${_fmtDate(_date!)} · ${_fmtTime(_time!)}'),
+            if (_reasonController.text.trim().isNotEmpty)
+              Text('Reason: ${_reasonController.text.trim()}'),
+            const SizedBox(height: 8),
+            const Text(
+              'Your doctor will approve the request. You can track it under My Care.',
+              style: TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Edit'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Send request'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await _submit();
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDoctorId == null || _doctors.isEmpty) {
@@ -152,7 +228,7 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
     }
     if (_date == null || _time == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please pick a date and time')),
+        const SnackBar(content: Text('Please pick a date and time slot')),
       );
       return;
     }
@@ -316,34 +392,45 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
               const SizedBox(height: 16),
               FormSectionCard(
                 children: [
-                  const SectionLabel('Date & Time',
+                  const SectionLabel('Date & time',
                       icon: Icons.calendar_month_outlined),
                   const SizedBox(height: 12),
-                  Row(
+                  OutlinedButton.icon(
+                    onPressed: _pickDate,
+                    icon: const Icon(Icons.calendar_today_outlined, size: 18),
+                    label: Text(
+                      _date == null ? 'Pick a date' : _fmtDate(_date!),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Available slots (9 AM – 5 PM)',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _pickDate,
-                          icon: const Icon(Icons.calendar_today_outlined,
-                              size: 18),
-                          label: Text(
-                            _date == null ? 'Date' : _fmtDate(_date!),
-                          ),
+                      for (final slot in _slots)
+                        ChoiceChip(
+                          label: Text(_fmtTime(slot)),
+                          selected: _time?.hour == slot.hour &&
+                              _time?.minute == slot.minute,
+                          onSelected: _isSlotDisabled(slot)
+                              ? null
+                              : (_) => setState(() => _time = slot),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _pickTime,
-                          icon:
-                              const Icon(Icons.access_time, size: 18),
-                          label: Text(
-                            _time == null ? 'Time' : _fmtTime(_time!),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
+                  if (_date != null && _time == null)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Pick a time slot above',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -351,8 +438,8 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
         ),
         bottomNavigationBar: StickySaveButton(
           isSaving: _isSaving,
-          onPressed: _submit,
-          label: 'Send request',
+          onPressed: _confirmAndSubmit,
+          label: 'Review & send request',
         ),
       ),
     );

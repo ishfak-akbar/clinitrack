@@ -61,6 +61,30 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   }
 
   Future<void> _cancel(Appointment appointment) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel this booking?'),
+        content: Text(
+          '${appointment.date} · ${appointment.time}\n'
+          'Your doctor will be notified. You can book another slot anytime.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep it'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancel booking'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     final ok = await context
         .read<AppointmentProvider>()
         .updateStatus(appointment.id, 'cancelled');
