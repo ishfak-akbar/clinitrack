@@ -38,6 +38,7 @@ import 'screens/medicine_list_screen.dart';
 import 'screens/order_medicine_screen.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/registration_screen.dart';
+import 'screens/doctor_application_screen.dart';
 import 'widgets/role_guard.dart';
 
 void main() async {
@@ -106,6 +107,8 @@ class CliniTrackApp extends StatelessWidget {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegistrationScreen(),
+        '/doctor-apply': (context) => const RoleGuard(
+            doctorOnly: true, child: DoctorApplicationScreen()),
         '/dashboard': (context) =>
             const RoleGuard(doctorOnly: true, child: DashboardScreen()),
         '/patient-home': (context) =>

@@ -55,8 +55,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       );
       return;
     }
+    // Doctors complete the professional-details application before
+    // entering the app; patients go straight home. (Step 3 gates pending
+    // doctors to the under-review screen.)
+    final isDoctor = context.read<AuthProvider>().role == 'Doctor';
     Navigator.of(context).pushReplacementNamed(
-      context.read<AuthProvider>().homeRoute,
+      isDoctor ? '/doctor-apply' : context.read<AuthProvider>().homeRoute,
     );
   }
 

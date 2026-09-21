@@ -21,6 +21,14 @@ class AuthProvider extends ChangeNotifier {
   static const String _keyBio = 'user_bio';
   static const String _keyAvatarUrl = 'user_avatar_url';
   static const String _keyMemberSince = 'user_member_since';
+  static const String _keyChamberName = 'user_chamber_name';
+  static const String _keyTitle = 'user_title';
+  static const String _keyDegree = 'user_degree';
+  static const String _keyGraduatingInstitution = 'user_graduating_institution';
+  static const String _keyGraduationYear = 'user_graduation_year';
+  static const String _keySpecialties = 'user_specialties';
+  static const String _keyVerificationStatus = 'user_verification_status';
+  static const String _keyRejectionReason = 'user_rejection_reason';
 
   bool _isLoggedIn = false;
   String _email = '';
@@ -39,6 +47,17 @@ class AuthProvider extends ChangeNotifier {
   String _avatarUrl = '';
   String _memberSince = '';
 
+  // Step 2 (doctor verification): credential + application state.
+  // Mirrors supabase/doctor_verification.sql; cached for offline use.
+  String _chamberName = '';
+  String _title = '';
+  String _degree = '';
+  String _graduatingInstitution = '';
+  String _graduationYear = '';
+  List<String> _specialties = [];
+  String _verificationStatus = 'approved';
+  String _rejectionReason = '';
+
   bool get isLoggedIn => _isLoggedIn;
   String get email => _email;
   String get role => _role;
@@ -55,6 +74,17 @@ class AuthProvider extends ChangeNotifier {
   String get bio => _bio;
   String get avatarUrl => _avatarUrl;
   String get memberSince => _memberSince;
+
+  String get chamberName => _chamberName;
+  String get title => _title;
+  String get degree => _degree;
+  String get graduatingInstitution => _graduatingInstitution;
+  String get graduationYear => _graduationYear;
+  List<String> get specialties => List.unmodifiable(_specialties);
+  String get verificationStatus => _verificationStatus;
+  String get rejectionReason => _rejectionReason;
+
+  bool get isAdmin => _role == 'Admin';
 
   bool get useBackend => _repo.useBackend;
   String? get userId => _repo.userId;
@@ -107,6 +137,23 @@ class AuthProvider extends ChangeNotifier {
       _bio = (row['bio'] as String?) ?? _bio;
       _avatarUrl = (row['avatar_url'] as String?) ?? _avatarUrl;
       if (_email.isEmpty) _email = (row['email'] as String?) ?? '';
+      _chamberName = (row['chamber_name'] as String?) ?? '';
+      _title = (row['title'] as String?) ?? '';
+      _degree = (row['degree'] as String?) ?? '';
+      _graduatingInstitution =
+          (row['graduating_institution'] as String?) ?? '';
+      final gradYear = row['graduation_year'];
+      _graduationYear = gradYear == null ? '' : gradYear.toString();
+      _specialties = (row['specialties'] as List?)
+              ?.map((e) => e.toString())
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList() ??
+          [];
+      // Unknown (pre-migration DB) means approved — preserves old behavior.
+      _verificationStatus =
+          (row['verification_status'] as String?) ?? 'approved';
+      _rejectionReason = (row['rejection_reason'] as String?) ?? '';
     }
     await _cacheToPrefs();
   }
@@ -125,6 +172,17 @@ class AuthProvider extends ChangeNotifier {
     _clinicAddress = prefs.getString(_keyClinicAddress) ?? _clinicAddress;
     _bio = prefs.getString(_keyBio) ?? _bio;
     _avatarUrl = prefs.getString(_keyAvatarUrl) ?? _avatarUrl;
+
+    _chamberName = prefs.getString(_keyChamberName) ?? '';
+    _title = prefs.getString(_keyTitle) ?? '';
+    _degree = prefs.getString(_keyDegree) ?? '';
+    _graduatingInstitution =
+        prefs.getString(_keyGraduatingInstitution) ?? '';
+    _graduationYear = prefs.getString(_keyGraduationYear) ?? '';
+    _specialties = prefs.getStringList(_keySpecialties) ?? [];
+    _verificationStatus =
+        prefs.getString(_keyVerificationStatus) ?? 'approved';
+    _rejectionReason = prefs.getString(_keyRejectionReason) ?? '';
 
     _memberSince = prefs.getString(_keyMemberSince) ?? '';
     if (_memberSince.isEmpty) {
@@ -242,6 +300,12 @@ class AuthProvider extends ChangeNotifier {
     required String experienceYears,
     required String clinicAddress,
     required String bio,
+    String chamberName = '',
+    String title = '',
+    String degree = '',
+    String graduatingInstitution = '',
+    String graduationYear = '',
+    List<String> specialties = const [],
   }) async {
     _name = name;
     _specialty = specialty;
@@ -252,6 +316,15 @@ class AuthProvider extends ChangeNotifier {
     _experienceYears = experienceYears;
     _clinicAddress = clinicAddress;
     _bio = bio;
+    _chamberName = chamberName;
+    _title = title;
+    _degree = degree;
+    _graduatingInstitution = graduatingInstitution;
+    _graduationYear = graduationYear;
+    _specialties = specialties
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
     notifyListeners();
 
     await _cacheToPrefs();
@@ -269,6 +342,12 @@ class AuthProvider extends ChangeNotifier {
         'experience_years': experienceYears,
         'clinic_address': clinicAddress,
         'bio': bio,
+        'chamber_name': chamberName,
+        'title': title,
+        'degree': degree,
+        'graduating_institution': graduatingInstitution,
+        'graduation_year': int.tryParse(graduationYear.trim()),
+        'specialties': _specialties,
       });
     } catch (_) {
       _errorMessage = 'Profile saved locally, cloud sync failed.';
@@ -309,6 +388,14 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString(_keyClinicAddress, _clinicAddress);
     await prefs.setString(_keyBio, _bio);
     await prefs.setString(_keyAvatarUrl, _avatarUrl);
+    await prefs.setString(_keyChamberName, _chamberName);
+    await prefs.setString(_keyTitle, _title);
+    await prefs.setString(_keyDegree, _degree);
+    await prefs.setString(_keyGraduatingInstitution, _graduatingInstitution);
+    await prefs.setString(_keyGraduationYear, _graduationYear);
+    await prefs.setStringList(_keySpecialties, _specialties);
+    await prefs.setString(_keyVerificationStatus, _verificationStatus);
+    await prefs.setString(_keyRejectionReason, _rejectionReason);
     if (_memberSince.isEmpty) {
       _memberSince = _formatDate(DateTime.now());
     }

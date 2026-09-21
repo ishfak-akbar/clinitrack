@@ -30,6 +30,7 @@ alter table public.profiles
     not null default 'pending'
     check (verification_status in ('pending', 'approved', 'rejected')),
   add column if not exists chamber_name text default '',
+  add column if not exists title text default '',
   add column if not exists degree text default '',
   add column if not exists graduating_institution text default '',
   add column if not exists graduation_year int
@@ -107,9 +108,12 @@ as $$ select exists (
 ) $$;
 
 -- ============ 5. nobody approves themselves (DB-enforced, not just UI) ============
--- Users may edit their own application fields, but role, verification
--- status and review columns are admin-only. Service role / SQL editor
--- (no auth uid) is always allowed so the dashboard keeps working.
+-- Users may edit their own application fields, but role and review columns
+-- are admin-only. The one exception: anyone may move their own status back
+-- to 'pending' — that is the re-review request after editing credentials
+-- (or a resubmit after rejection). Approvals/rejections stay admin-only.
+-- Service role / SQL editor (no auth uid) is always allowed so the
+-- dashboard keeps working.
 create or replace function public.prevent_self_verification()
 returns trigger as $$
 begin
@@ -122,8 +126,10 @@ begin
   if new.role is distinct from old.role then
     raise exception 'Only admins can change roles.';
   end if;
-  if new.verification_status is distinct from old.verification_status then
-    raise exception 'Only admins can change verification status.';
+  if new.verification_status is distinct from old.verification_status
+     and new.verification_status <> 'pending'
+     and not public.is_admin(auth.uid()) then
+    raise exception 'Only admins can approve or reject applications.';
   end if;
   if new.reviewed_by is distinct from old.reviewed_by
      or new.reviewed_at is distinct from old.reviewed_at then

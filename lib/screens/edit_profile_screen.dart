@@ -84,6 +84,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       experienceYears: _experienceController.text.trim(),
       clinicAddress: _clinicAddressController.text.trim(),
       bio: _bioController.text.trim(),
+      // Step 6 moves these into this form; until then pass the stored
+      // values through so saving never wipes the verification data.
+      chamberName: context.read<AuthProvider>().chamberName,
+      title: context.read<AuthProvider>().title,
+      degree: context.read<AuthProvider>().degree,
+      graduatingInstitution:
+          context.read<AuthProvider>().graduatingInstitution,
+      graduationYear: context.read<AuthProvider>().graduationYear,
+      specialties: context.read<AuthProvider>().specialties,
     );
 
     if (!mounted) return;
