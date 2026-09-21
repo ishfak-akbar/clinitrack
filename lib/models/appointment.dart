@@ -7,6 +7,10 @@ class Appointment {
   final String dateIso;
   final String time;
   final String reason;
+  /// Display snapshot of the doctor's name (offline + list rendering).
+  /// Never use for matching — [ownerId] is the canonical doctor reference
+  /// (`appointments.owner_id`). Names drift when a doctor edits their
+  /// profile; ids don't.
   final String doctor;
   final String status;
 
@@ -14,6 +18,23 @@ class Appointment {
   final String? ownerId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  /// Canonical doctor reference — alias of [ownerId] for call-site clarity.
+  /// Prefer this over [doctor] whenever comparing "same doctor?".
+  String? get doctorId => ownerId;
+
+  /// True when both rows belong to the same doctor. Falls back to the
+  /// display-name snapshot only for legacy local rows with no owner id.
+  bool isSameDoctor(Appointment other) {
+    if (ownerId != null &&
+        ownerId!.isNotEmpty &&
+        other.ownerId != null &&
+        other.ownerId!.isNotEmpty) {
+      return ownerId == other.ownerId;
+    }
+    return doctor.trim().toLowerCase() ==
+        other.doctor.trim().toLowerCase();
+  }
 
   Appointment({
     required this.id,

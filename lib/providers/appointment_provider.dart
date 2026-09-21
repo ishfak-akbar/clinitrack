@@ -89,6 +89,9 @@ class AppointmentProvider extends ChangeNotifier {
               reason: appointment.reason,
               doctor: appointment.doctor,
               status: appointment.status,
+              // Offline/demo bookings still carry the chosen doctor's id so
+              // the duplicate-request guard can match canonically.
+              ownerId: ownerId ?? appointment.ownerId,
             )
           : appointment,
     );

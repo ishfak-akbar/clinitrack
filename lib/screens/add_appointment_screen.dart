@@ -6,6 +6,7 @@ import '../widgets/section_label.dart';
 import '../widgets/form_section_card.dart';
 import '../widgets/sticky_save_button.dart';
 import '../providers/appointment_provider.dart';
+import '../providers/auth_provider.dart';
 import '../providers/patient_provider.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
@@ -22,15 +23,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  int _selectedDoctorIndex = 0;
   bool _isSaving = false;
-
-  final List<String> _doctors = [
-    'Dr. Faiza Akter Borsha',
-    'Dr. Ishrak Saleh Chowdhury',
-    'Dr. Tasnia Akther',
-    'Dr. Shakif Niaz',
-  ];
 
   @override
   void dispose() {
@@ -102,6 +95,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
     setState(() => _isSaving = true);
 
+    // Doctor-side flow: the appointment belongs to the signed-in doctor.
+    // There is no doctor picker here — RLS isolates rows per owner_id, so
+    // writing another doctor's name would create a row that doctor never
+    // sees. Patients pick a doctor in the Book-visit flow instead.
+    final doctorName = context.read<AuthProvider>().name.trim();
+
     final appointment = Appointment(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       patientId: _selectedPatient!.id,
@@ -110,7 +109,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       dateIso: _toIsoDate(_selectedDate!),
       time: _formatTime(_selectedTime!),
       reason: _reasonController.text.trim(),
-      doctor: _doctors[_selectedDoctorIndex],
+      doctor: doctorName,
       status: 'scheduled',
     );
 
@@ -232,70 +231,35 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
               const SizedBox(height: 16),
 
-              // ---------- Select Doctor ----------
+              // ---------- Doctor (signed-in user, read-only) ----------
               FormSectionCard(
                 children: [
-                  const SectionLabel('Select Doctor', icon: Icons.medical_services_outlined),
-                  const SizedBox(height: 12),
-                  Column(
-                    children: List.generate(_doctors.length, (index) {
-                      final isSelected = _selectedDoctorIndex == index;
+                  const SectionLabel('Doctor', icon: Icons.medical_services_outlined),
+                  const SizedBox(height: 8),
+                  Consumer<AuthProvider>(
+                    builder: (context, auth, _) {
                       final theme = Theme.of(context);
-                      final isDark = theme.brightness == Brightness.dark;
-                      final accent = isDark ? AppColors.primaryTealAccent : AppColors.primaryTeal;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: InkWell(
-                          onTap: () => setState(() => _selectedDoctorIndex = index),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? accent.withValues(alpha: 0.08)
-                                  : (isDark ? AppColors.darkCard : Colors.grey.shade50),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? accent : (isDark ? AppColors.darkBorder : Colors.grey.shade300),
-                                width: isSelected ? 1.5 : 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor:
-                                  isSelected ? accent : (isDark ? AppColors.darkBorder : Colors.grey.shade300),
-                                  child: Text(
-                                    _doctors[index].split(' ').last[0],
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? (isDark ? AppColors.darkBackground : Colors.white)
-                                          : theme.textTheme.bodyMedium?.color,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    _doctors[index],
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                      color: isSelected ? accent : theme.textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                ),
-                                if (isSelected)
-                                  Icon(Icons.check_circle, color: accent, size: 22),
-                              ],
+                      return Row(
+                        children: [
+                          const Icon(Icons.verified_outlined, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              auth.name.trim().isEmpty
+                                  ? 'Your account'
+                                  : auth.name.trim(),
+                              style: theme.textTheme.titleMedium,
                             ),
                           ),
-                        ),
+                        ],
                       );
-                    }),
-                  )
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Scheduled under your account.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ],
               ),
             ],

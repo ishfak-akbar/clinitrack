@@ -5,15 +5,25 @@ import 'package:flutter_test/flutter_test.dart';
 /// Booking business rules shared by doctor + patient portals:
 /// - one active request per doctor+day (requested/scheduled block, others don't)
 /// - clinic slots 9:00 AM–5:00 PM every 30 min, past slots disabled same-day.
+///
+/// "Same doctor" is canonical on owner_id (the appointment's doctor
+/// reference). The display-name snapshot is a fallback for legacy local
+/// rows that carry no owner id — names drift on profile edits, ids don't.
 bool hasActiveBooking({
   required List<Appointment> existing,
-  required String doctor,
+  required String doctorId,
+  String doctorName = '',
   required String dateIso,
 }) {
-  return existing.any((a) =>
-      a.doctor == doctor &&
-      a.dateIso == dateIso &&
-      (a.status == 'requested' || a.status == 'scheduled'));
+  return existing.any((a) {
+    final sameDoctor =
+        (a.ownerId != null && a.ownerId!.isNotEmpty)
+            ? a.ownerId == doctorId
+            : a.doctor == doctorName;
+    return sameDoctor &&
+        a.dateIso == dateIso &&
+        (a.status == 'requested' || a.status == 'scheduled');
+  });
 }
 
 List<TimeOfDay> clinicSlots() => [
@@ -29,7 +39,9 @@ bool isSlotDisabled(TimeOfDay slot, DateTime day, DateTime now) {
       (now.hour * 60 + now.minute) + 30;
 }
 
-Appointment _appt(String doctor, String iso, String status) => Appointment(
+Appointment _appt(String doctor, String iso, String status,
+        {String? ownerId}) =>
+    Appointment(
       id: 'x',
       patientName: 'P',
       date: iso,
@@ -38,6 +50,7 @@ Appointment _appt(String doctor, String iso, String status) => Appointment(
       reason: 'Checkup',
       doctor: doctor,
       status: status,
+      ownerId: ownerId,
     );
 
 void main() {
@@ -46,7 +59,10 @@ void main() {
       final existing = [_appt('Dr. A', '2026-06-20', 'requested')];
       expect(
           hasActiveBooking(
-              existing: existing, doctor: 'Dr. A', dateIso: '2026-06-20'),
+              existing: existing,
+              doctorId: '',
+              doctorName: 'Dr. A',
+              dateIso: '2026-06-20'),
           isTrue);
     });
 
@@ -54,31 +70,87 @@ void main() {
       expect(
           hasActiveBooking(
             existing: [_appt('Dr. A', '2026-06-20', 'cancelled')],
-            doctor: 'Dr. A',
+            doctorId: '',
+            doctorName: 'Dr. A',
             dateIso: '2026-06-20',
           ),
           isFalse);
       expect(
           hasActiveBooking(
             existing: [_appt('Dr. A', '2026-06-20', 'completed')],
-            doctor: 'Dr. A',
+            doctorId: '',
+            doctorName: 'Dr. A',
             dateIso: '2026-06-20',
           ),
           isFalse);
       expect(
           hasActiveBooking(
             existing: [_appt('Dr. A', '2026-06-20', 'scheduled')],
-            doctor: 'Dr. B',
+            doctorId: '',
+            doctorName: 'Dr. B',
             dateIso: '2026-06-20',
           ),
           isFalse);
       expect(
           hasActiveBooking(
             existing: [_appt('Dr. A', '2026-06-20', 'scheduled')],
-            doctor: 'Dr. A',
+            doctorId: '',
+            doctorName: 'Dr. A',
             dateIso: '2026-06-21',
           ),
           isFalse);
+    });
+
+    test('matches canonical owner id even when the name drifted', () {
+      // Doctor renamed their profile after the first booking: the stored
+      // snapshot still says "Dr. Old", the directory now says "Dr. New".
+      final existing = [
+        _appt('Dr. Old', '2026-06-20', 'requested', ownerId: 'doc-1'),
+      ];
+      expect(
+          hasActiveBooking(
+            existing: existing,
+            doctorId: 'doc-1',
+            doctorName: 'Dr. New',
+            dateIso: '2026-06-20',
+          ),
+          isTrue);
+    });
+
+    test('same display name, different owner id is a different doctor', () {
+      final existing = [
+        _appt('Dr. Smith', '2026-06-20', 'scheduled', ownerId: 'doc-1'),
+      ];
+      expect(
+          hasActiveBooking(
+            existing: existing,
+            doctorId: 'doc-2',
+            doctorName: 'Dr. Smith',
+            dateIso: '2026-06-20',
+          ),
+          isFalse);
+    });
+  });
+
+  group('Appointment.isSameDoctor (canonical owner id)', () {
+    test('same owner id wins over drifted display names', () {
+      final a = _appt('Dr. Old', '2026-06-20', 'requested', ownerId: 'doc-1');
+      final b = _appt('Dr. New', '2026-06-21', 'requested', ownerId: 'doc-1');
+      expect(a.isSameDoctor(b), isTrue);
+    });
+
+    test('different owner ids are different doctors', () {
+      final a = _appt('Dr. Smith', '2026-06-20', 'requested', ownerId: 'doc-1');
+      final b = _appt('Dr. Smith', '2026-06-20', 'requested', ownerId: 'doc-2');
+      expect(a.isSameDoctor(b), isFalse);
+    });
+
+    test('legacy rows without owner ids fall back to names', () {
+      final a = _appt('Dr. A', '2026-06-20', 'requested');
+      final b = _appt('Dr. A', '2026-06-21', 'requested');
+      final c = _appt('Dr. B', '2026-06-20', 'requested');
+      expect(a.isSameDoctor(b), isTrue);
+      expect(a.isSameDoctor(c), isFalse);
     });
   });
 

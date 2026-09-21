@@ -203,6 +203,17 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
   String _iso(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
+  /// Canonical "same doctor?" check: owner_id first, display name as legacy
+  /// fallback (local rows created before owner ids were preserved).
+  bool _isSameDoctor(
+      String? ownerId, String doctorName, DoctorDirectoryEntry doctor) {
+    if (ownerId != null && ownerId.isNotEmpty) {
+      return ownerId == doctor.id;
+    }
+    return doctorName.trim().toLowerCase() ==
+        doctor.name.trim().toLowerCase();
+  }
+
   // ---------- Flow ----------
 
   void _next() {
@@ -245,10 +256,13 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
     final iso = _iso(_date!);
 
     // Avoid duplicate active requests for the same doctor + day.
+    // Canonical match is owner_id (doctor id) — the display-name snapshot
+    // drifts when a doctor renames their profile, so name is only a
+    // fallback for legacy local rows that carry no owner id.
     final existing =
         context.read<AppointmentProvider>().appointments.where(
               (a) =>
-                  a.doctor == doctor.name &&
+                  _isSameDoctor(a.ownerId, a.doctor, doctor) &&
                   a.dateIso == iso &&
                   (a.status == 'requested' || a.status == 'scheduled'),
             );
