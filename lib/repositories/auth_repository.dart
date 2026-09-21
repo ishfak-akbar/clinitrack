@@ -175,6 +175,144 @@ class AuthRepository {
         .update(fields)
         .eq('id', user.id);
   }
+
+  /// Step 5: pending doctor applications for the admin review queue.
+  /// RLS (`profiles_admin_read`) restricts this to admins; the call throws
+  /// [AuthFailure] otherwise (or on connection failure).
+  Future<List<DoctorApplicationEntry>> fetchPendingDoctors() async {
+    if (!useBackend) return [];
+    try {
+      final rows = await SupabaseConfig.client
+          .from('profiles')
+          .select(
+              'id, full_name, email, title, degree, graduating_institution, '
+              'graduation_year, license_number, chamber_name, clinic_address, '
+              'phone, qualifications, experience_years, specialty, specialties, '
+              'bio, created_at')
+          .eq('role', 'Doctor')
+          .eq('verification_status', 'pending')
+          .order('created_at', ascending: true);
+      return (rows as List).map((r) {
+        final row = r as Map<String, dynamic>;
+        final gradYear = row['graduation_year'];
+        DateTime? createdAt;
+        final rawCreated = row['created_at'];
+        if (rawCreated != null) {
+          createdAt = DateTime.tryParse(rawCreated.toString());
+        }
+        return DoctorApplicationEntry(
+          id: (row['id'] as String?) ?? '',
+          name: ((row['full_name'] as String?) ?? '').trim(),
+          email: ((row['email'] as String?) ?? '').trim(),
+          title: ((row['title'] as String?) ?? '').trim(),
+          degree: ((row['degree'] as String?) ?? '').trim(),
+          graduatingInstitution:
+              ((row['graduating_institution'] as String?) ?? '').trim(),
+          graduationYear: gradYear == null ? '' : gradYear.toString(),
+          licenseNumber: ((row['license_number'] as String?) ?? '').trim(),
+          chamberName: ((row['chamber_name'] as String?) ?? '').trim(),
+          clinicAddress: ((row['clinic_address'] as String?) ?? '').trim(),
+          phone: ((row['phone'] as String?) ?? '').trim(),
+          qualifications: ((row['qualifications'] as String?) ?? '').trim(),
+          experienceYears: ((row['experience_years'] as String?) ?? '').trim(),
+          specialty: ((row['specialty'] as String?) ?? '').trim(),
+          specialties: (row['specialties'] as List?)
+                  ?.map((e) => e.toString())
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList() ??
+              const [],
+          bio: ((row['bio'] as String?) ?? '').trim(),
+          createdAt: createdAt,
+        );
+      }).toList();
+    } catch (e) {
+      if (e is AuthFailure) rethrow;
+      throw const AuthFailure(
+          'Could not load applications. Check connection and try again.');
+    }
+  }
+
+  /// Step 5: admin verdict on one application. RLS + the
+  /// `prevent_self_verification()` trigger enforce the admin-only rule;
+  /// rejections require a reason (shown to the doctor on resubmit).
+  Future<void> reviewDoctor({
+    required String id,
+    required bool approve,
+    String reason = '',
+  }) async {
+    final uid = userId;
+    if (uid == null) {
+      throw const AuthFailure('Please sign in again.');
+    }
+    if (!approve && reason.trim().isEmpty) {
+      throw const AuthFailure(
+          'A reason is required — the doctor will see it.');
+    }
+    try {
+      await SupabaseConfig.client.from('profiles').update({
+        'verification_status': approve ? 'approved' : 'rejected',
+        'reviewed_by': uid,
+        'reviewed_at': DateTime.now().toIso8601String(),
+        'rejection_reason': approve ? '' : reason.trim(),
+      }).eq('id', id);
+    } catch (e) {
+      if (e is AuthFailure) rethrow;
+      throw const AuthFailure(
+          'Could not save review. Check connection and try again.');
+    }
+  }
+}
+
+/// One pending doctor application in the admin review queue (step 5).
+class DoctorApplicationEntry {
+  final String id; // profile id == auth user id
+  final String name;
+  final String email;
+  final String title;
+  final String degree;
+  final String graduatingInstitution;
+  final String graduationYear;
+  final String licenseNumber;
+  final String chamberName;
+  final String clinicAddress;
+  final String phone;
+  final String qualifications;
+  final String experienceYears;
+  final String specialty;
+  final List<String> specialties;
+  final String bio;
+  final DateTime? createdAt;
+
+  const DoctorApplicationEntry({
+    required this.id,
+    required this.name,
+    this.email = '',
+    this.title = '',
+    this.degree = '',
+    this.graduatingInstitution = '',
+    this.graduationYear = '',
+    this.licenseNumber = '',
+    this.chamberName = '',
+    this.clinicAddress = '',
+    this.phone = '',
+    this.qualifications = '',
+    this.experienceYears = '',
+    this.specialty = '',
+    this.specialties = const [],
+    this.bio = '',
+    this.createdAt,
+  });
+
+  /// Display line: stored array first, legacy single column as fallback.
+  String get specialtyLine =>
+      specialties.isNotEmpty ? specialties.join(', ') : specialty;
+
+  String get appliedLabel {
+    if (createdAt == null) return '';
+    final d = createdAt!.toLocal();
+    return '${d.day}/${d.month}/${d.year}';
+  }
 }
 
 /// One row of the doctors directory shown to patients.

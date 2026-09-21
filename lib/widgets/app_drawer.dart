@@ -123,7 +123,7 @@ class AppDrawer extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          auth.specialty,
+                          auth.isAdmin ? 'Administrator' : auth.specialty,
                           style: Theme.of(context).textTheme.bodySmall,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -136,25 +136,30 @@ class AppDrawer extends StatelessWidget {
             Divider(height: 1, color: accent.withValues(alpha: isDark ? 0.2 : 0.12)),
 
             // ---------- Nav items ----------
+            // Step 5: admins get the review queue instead of clinic routes.
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 children: [
-                  _navTile(context, icon: Icons.dashboard_outlined, label: 'Dashboard', routeName: '/dashboard'),
-                  _navTile(context, icon: Icons.people_outline, label: 'Patients', routeName: '/patient-list'),
-                  _navTile(context, icon: Icons.event_note_outlined, label: 'Appointments', routeName: '/appointments'),
-                  _navTile(context, icon: Icons.receipt_long_outlined, label: 'New prescription', routeName: '/add-prescription'),
-                  _navTile(context, icon: Icons.schedule_outlined, label: 'New follow-up', routeName: '/follow-up'),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Divider(height: 1),
-                  ),
-                  _navTile(context, icon: Icons.bar_chart_outlined, label: 'Reports', routeName: '/reports'),
-                  _navTile(context, icon: Icons.medication_outlined, label: 'Medicine Inventory', routeName: '/medicine-list'),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Divider(height: 1),
-                  ),
+                  if (auth.isAdmin)
+                    _navTile(context, icon: Icons.verified_user_outlined, label: 'Review applications', routeName: '/admin')
+                  else ...[
+                    _navTile(context, icon: Icons.dashboard_outlined, label: 'Dashboard', routeName: '/dashboard'),
+                    _navTile(context, icon: Icons.people_outline, label: 'Patients', routeName: '/patient-list'),
+                    _navTile(context, icon: Icons.event_note_outlined, label: 'Appointments', routeName: '/appointments'),
+                    _navTile(context, icon: Icons.receipt_long_outlined, label: 'New prescription', routeName: '/add-prescription'),
+                    _navTile(context, icon: Icons.schedule_outlined, label: 'New follow-up', routeName: '/follow-up'),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(height: 1),
+                    ),
+                    _navTile(context, icon: Icons.bar_chart_outlined, label: 'Reports', routeName: '/reports'),
+                    _navTile(context, icon: Icons.medication_outlined, label: 'Medicine Inventory', routeName: '/medicine-list'),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(height: 1),
+                    ),
+                  ],
                   _navTile(context, icon: Icons.person_outline, label: 'Profile', routeName: '/profile'),
                   _navTile(context, icon: Icons.settings_outlined, label: 'Settings', routeName: '/settings'),
                 ],

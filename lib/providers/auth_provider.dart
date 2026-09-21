@@ -13,8 +13,7 @@ String resolveHomeRoute({
   required String verificationStatus,
 }) {
   if (role == 'Patient') return '/patient-home';
-  // TODO(step 5): admins land on the review queue ('/admin').
-  if (role == 'Admin') return '/dashboard';
+  if (role == 'Admin') return '/admin';
   if (verificationStatus != 'approved') return '/verification-pending';
   return '/dashboard';
 }
@@ -116,7 +115,7 @@ class AuthProvider extends ChangeNotifier {
   String? get userId => _repo.userId;
 
   /// Home route for the signed-in role (Part 5: patient portal;
-  /// step 3: verification gate for doctors, admin landing in step 5).
+  /// step 3: verification gate for doctors; step 5: admin review queue).
   bool get isPatient => _role == 'Patient';
   String get homeRoute => resolveHomeRoute(
         role: _role,

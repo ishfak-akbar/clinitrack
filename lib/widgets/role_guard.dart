@@ -10,16 +10,20 @@ import '../providers/auth_provider.dart';
 /// Step 3 (doctor verification, fully-blocked model): signed-in, non-admin,
 /// non-patient accounts without approval are additionally confined to the
 /// pending screen + application form — every other guarded route bounces.
+///
+/// Step 5: `adminOnly` routes (the review queue) bounce everyone else.
 class RoleGuard extends StatelessWidget {
   final Widget child;
   final bool doctorOnly;
   final bool patientOnly;
+  final bool adminOnly;
 
   const RoleGuard({
     super.key,
     required this.child,
     this.doctorOnly = false,
     this.patientOnly = false,
+    this.adminOnly = false,
   });
 
   @override
@@ -33,6 +37,16 @@ class RoleGuard extends StatelessWidget {
       );
     }
     if (!auth.isLoggedIn) return child;
+
+    if (adminOnly && !auth.isAdmin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        Navigator.of(context).pushReplacementNamed(auth.homeRoute);
+      });
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     if (needsVerificationGate(
       role: auth.role,

@@ -1,11 +1,11 @@
--- CliniTrack doctor verification — run ONCE in SQL Editor AFTER
--- schema.sql + patient_portal.sql (order with storage.sql doesn't matter).
+-- CliniTrack doctor verification - run ONCE in SQL Editor AFTER
+-- schema.sql + patient_portal.sql (order with storage.sql does not matter).
 -- Rerunnable, with one caveat: re-running section 2 approves every pending
 -- doctor, so treat re-runs as an admin action.
 --
 -- Model:
 -- - profiles.role gains 'Admin'. Public signup can still only mint
---   Doctor/Patient — the trigger clamps anything else to Doctor, so nobody
+--   Doctor/Patient - the trigger clamps anything else to Doctor, so nobody
 --   can self-register as admin. Admins are promoted via SQL (section 7).
 -- - profiles.verification_status: pending / approved / rejected. Meaningful
 --   for doctors only; patients are always 'approved'.

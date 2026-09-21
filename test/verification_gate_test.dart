@@ -31,6 +31,13 @@ void main() {
         '/verification-pending',
       );
     });
+
+    test('admins go to the review queue', () {
+      expect(
+        resolveHomeRoute(role: 'Admin', verificationStatus: 'approved'),
+        '/admin',
+      );
+    });
   });
 
   group('needsVerificationGate', () {

@@ -1,4 +1,4 @@
--- CliniTrack approved-doctors-only directory — run ONCE in SQL Editor AFTER
+-- CliniTrack approved-doctors-only directory - run ONCE in SQL Editor AFTER
 -- doctor_verification.sql. Rerunnable.
 --
 -- Closes the hole a UI-only filter leaves: a crafted client could book a

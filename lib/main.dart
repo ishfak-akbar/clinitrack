@@ -40,6 +40,7 @@ import 'screens/edit_profile_screen.dart';
 import 'screens/registration_screen.dart';
 import 'screens/doctor_application_screen.dart';
 import 'screens/verification_pending_screen.dart';
+import 'screens/admin_screen.dart';
 import 'widgets/role_guard.dart';
 
 void main() async {
@@ -114,6 +115,8 @@ class CliniTrackApp extends StatelessWidget {
         // and the gate above confines unapproved doctors to it.
         '/verification-pending': (context) =>
             const VerificationPendingScreen(),
+        '/admin': (context) =>
+            const RoleGuard(adminOnly: true, child: AdminScreen()),
         '/dashboard': (context) =>
             const RoleGuard(doctorOnly: true, child: DashboardScreen()),
         '/patient-home': (context) =>
