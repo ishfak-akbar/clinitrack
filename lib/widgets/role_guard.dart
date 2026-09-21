@@ -6,6 +6,10 @@ import '../providers/auth_provider.dart';
 /// Part 5: role-based route guard — patients stay on portal routes,
 /// doctors stay on clinic routes. Shared routes: splash/login/register,
 /// profile/settings.
+///
+/// Step 3 (doctor verification, fully-blocked model): signed-in, non-admin,
+/// non-patient accounts without approval are additionally confined to the
+/// pending screen + application form — every other guarded route bounces.
 class RoleGuard extends StatelessWidget {
   final Widget child;
   final bool doctorOnly;
@@ -29,6 +33,23 @@ class RoleGuard extends StatelessWidget {
       );
     }
     if (!auth.isLoggedIn) return child;
+
+    if (needsVerificationGate(
+      role: auth.role,
+      verificationStatus: auth.verificationStatus,
+    )) {
+      final routeName = ModalRoute.of(context)?.settings.name;
+      if (routeName != '/verification-pending' &&
+          routeName != '/doctor-apply') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          Navigator.of(context).pushReplacementNamed('/verification-pending');
+        });
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
+    }
 
     final isPatient = auth.isPatient;
     final wrongSide =

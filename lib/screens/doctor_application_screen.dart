@@ -218,6 +218,9 @@ class _DoctorApplicationScreenState extends State<DoctorApplicationScreen> {
 
     setState(() => _isSaving = true);
     final auth = context.read<AuthProvider>();
+    // A rejected doctor resubmitting moves back to pending (re-review).
+    // The DB trigger permits users to set their own status to pending only.
+    final resubmit = auth.verificationStatus == 'rejected';
     await auth.updateProfile(
       name: auth.name,
       specialty: specialties.first,
@@ -234,6 +237,7 @@ class _DoctorApplicationScreenState extends State<DoctorApplicationScreen> {
       graduatingInstitution: _institutionController.text.trim(),
       graduationYear: _gradYearController.text.trim(),
       specialties: specialties,
+      requestReReview: resubmit,
     );
 
     if (!mounted) return;

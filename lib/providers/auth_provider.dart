@@ -3,6 +3,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../repositories/auth_repository.dart';
 
+/// Step 3 (doctor verification, fully-blocked model): pure routing rules,
+/// unit-tested in test/verification_gate_test.dart.
+///
+/// [role] is Doctor / Patient / Admin, [verificationStatus] is
+/// pending / approved / rejected (meaningful for doctors only).
+String resolveHomeRoute({
+  required String role,
+  required String verificationStatus,
+}) {
+  if (role == 'Patient') return '/patient-home';
+  // TODO(step 5): admins land on the review queue ('/admin').
+  if (role == 'Admin') return '/dashboard';
+  if (verificationStatus != 'approved') return '/verification-pending';
+  return '/dashboard';
+}
+
+/// True when the account is confined to the pending screen + application
+/// form: any signed-in, non-admin, non-patient role without approval.
+/// Offline / pre-migration profiles default to 'approved', so this only
+/// fires for real pending/rejected rows.
+bool needsVerificationGate({
+  required String role,
+  required String verificationStatus,
+}) =>
+    role != 'Patient' && role != 'Admin' && verificationStatus != 'approved';
+
 /// Step 14: UI/session state only — all Supabase auth + `profiles`
 /// access goes through [AuthRepository].
 class AuthProvider extends ChangeNotifier {
@@ -89,9 +115,13 @@ class AuthProvider extends ChangeNotifier {
   bool get useBackend => _repo.useBackend;
   String? get userId => _repo.userId;
 
-  /// Home route for the signed-in role (Part 5: patient portal).
+  /// Home route for the signed-in role (Part 5: patient portal;
+  /// step 3: verification gate for doctors, admin landing in step 5).
   bool get isPatient => _role == 'Patient';
-  String get homeRoute => isPatient ? '/patient-home' : '/dashboard';
+  String get homeRoute => resolveHomeRoute(
+        role: _role,
+        verificationStatus: _verificationStatus,
+      );
 
   Future<void> loadSession() async {
     _isLoading = true;
@@ -306,6 +336,10 @@ class AuthProvider extends ChangeNotifier {
     String graduatingInstitution = '',
     String graduationYear = '',
     List<String> specialties = const [],
+    // Step 3: resubmit-after-rejection (and step 6: credential edits) move
+    // the account back to 'pending'. The DB trigger permits users to set
+    // their own status to pending — nothing else.
+    bool requestReReview = false,
   }) async {
     _name = name;
     _specialty = specialty;
@@ -325,6 +359,7 @@ class AuthProvider extends ChangeNotifier {
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
+    if (requestReReview) _verificationStatus = 'pending';
     notifyListeners();
 
     await _cacheToPrefs();
@@ -348,6 +383,7 @@ class AuthProvider extends ChangeNotifier {
         'graduating_institution': graduatingInstitution,
         'graduation_year': int.tryParse(graduationYear.trim()),
         'specialties': _specialties,
+        if (requestReReview) 'verification_status': 'pending',
       });
     } catch (_) {
       _errorMessage = 'Profile saved locally, cloud sync failed.';
