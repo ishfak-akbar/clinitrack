@@ -194,6 +194,13 @@ class ProfileScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
+                if (!isPatient) ...[
+                  const SizedBox(height: 8),
+                  _VerificationBadge(
+                    status: auth.verificationStatus,
+                    isAdmin: auth.isAdmin,
+                  ),
+                ],
               ],
             ),
           ),
@@ -268,6 +275,57 @@ class ProfileScreen extends StatelessWidget {
               icon: Icons.workspace_premium_outlined,
               child: Column(
                 children: [
+                  if (auth.title.isNotEmpty) ...[
+                    _infoTile(
+                      context,
+                      icon: Icons.assignment_ind_outlined,
+                      label: 'Title',
+                      value: auth.title,
+                    ),
+                    const Divider(),
+                  ],
+                  if (auth.degree.isNotEmpty) ...[
+                    _infoTile(
+                      context,
+                      icon: Icons.workspace_premium_outlined,
+                      label: 'Degree',
+                      value: auth.degree,
+                    ),
+                    const Divider(),
+                  ],
+                  if (auth.graduatingInstitution.isNotEmpty ||
+                      auth.graduationYear.isNotEmpty) ...[
+                    _infoTile(
+                      context,
+                      icon: Icons.account_balance_outlined,
+                      label: 'Graduated from',
+                      value: auth.graduationYear.isEmpty
+                          ? auth.graduatingInstitution
+                          : '${auth.graduatingInstitution} · ${auth.graduationYear}',
+                    ),
+                    const Divider(),
+                  ],
+                  if (auth.specialties.isNotEmpty ||
+                      auth.specialty.isNotEmpty) ...[
+                    _infoTile(
+                      context,
+                      icon: Icons.medical_services_outlined,
+                      label: 'Specialties',
+                      value: auth.specialties.isNotEmpty
+                          ? auth.specialties.join(', ')
+                          : auth.specialty,
+                    ),
+                    const Divider(),
+                  ],
+                  if (auth.chamberName.isNotEmpty) ...[
+                    _infoTile(
+                      context,
+                      icon: Icons.business_outlined,
+                      label: 'Chamber',
+                      value: auth.chamberName,
+                    ),
+                    const Divider(),
+                  ],
                   _infoTile(
                     context,
                     icon: Icons.menu_book_outlined,
@@ -345,6 +403,63 @@ class ProfileScreen extends StatelessWidget {
               icon: const Icon(Icons.edit_outlined),
               label: const Text('Edit Profile'),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Verification pill under the profile header (doctors only).
+class _VerificationBadge extends StatelessWidget {
+  final String status;
+  final bool isAdmin;
+
+  const _VerificationBadge({required this.status, required this.isAdmin});
+
+  @override
+  Widget build(BuildContext context) {
+    final IconData icon;
+    final String label;
+    final Color color;
+    if (isAdmin) {
+      icon = Icons.verified_user_outlined;
+      label = 'Administrator';
+      color = Theme.of(context).brightness == Brightness.dark
+          ? AppColors.primaryTealAccent
+          : AppColors.primaryTeal;
+    } else if (status == 'approved') {
+      icon = Icons.check_circle;
+      label = 'Verified doctor';
+      color = AppColors.successGreen;
+    } else if (status == 'rejected') {
+      icon = Icons.cancel_outlined;
+      label = 'Verification rejected';
+      color = AppColors.errorRed;
+    } else {
+      icon = Icons.hourglass_top_rounded;
+      label = 'Verification pending';
+      color = AppColors.warningAmber;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

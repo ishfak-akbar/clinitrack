@@ -61,8 +61,9 @@ CliniTrack gives doctors a full practice workspace (patients, appointments, pres
 - **Health profile** — edit own linked demographics (name, age, gender, blood group, history, allergies)
 
 ### 🔐 Auth & data
-- Email + password auth with **Doctor / Patient roles** and role-based routing + route guards
-- Supabase tables with per-user RLS; patient bookings link doctor ↔ patient rows
+- Email + password auth with **Doctor / Patient roles** (plus an **Admin** role for verification) and role-based routing + route guards
+- New doctors complete a professional-details application and stay **fully blocked** until an admin approves; credential edits later trigger re-review
+- Supabase tables with per-user RLS; patient bookings link doctor ↔ patient rows (approved doctors only)
 - Offline-first fallback (SharedPreferences + local files) when no backend keys are present
 - Light / dark themes, glass bottom navigation, gradient app shell
 
@@ -100,6 +101,14 @@ flutter pub get
 1. `supabase/schema.sql` — tables, RLS, signup trigger
 2. `supabase/storage.sql` — `avatars` (public read) + `attachments` (private) buckets and policies
 3. `supabase/patient_portal.sql` — patient linking, `requested` status, doctors directory
+4. `supabase/doctor_verification.sql` — doctor verification (`pending`/`approved`/`rejected`), credential columns, admin role, self-approval guard
+5. `supabase/doctor_directory_guard.sql` — patients may only book approved doctors (DB-enforced)
+
+### Doctor verification & admin
+- Doctors register, complete the professional-details application (chamber, title, degree, institution, graduation year, specialties, license), and wait fully blocked until approved.
+- Editing credential fields later sends the account back for re-review; bio/phone/chamber edits stay approved.
+- Bootstrap the admin: register `admin@clinitrack.com` in the app, then run section 7 of `doctor_verification.sql` to promote it. The admin lands on **Review applications** — approve, or reject with a reason the doctor sees on resubmit.
+- Without the app, the same queue is: `select full_name, email, degree, license_number from profiles where role = 'Doctor' and verification_status = 'pending';`
 
 Under **Authentication > Providers > Email**, turn email confirmation **OFF** for instant sign-in (the app also handles the confirm-by-email flow).
 
@@ -118,7 +127,7 @@ Resolution order: `--dart-define` (CI) → `.env.<APP_ENV>` → `.env`. Never co
 ### 4. Run / test / build
 ```bash
 flutter run                  # dev, local or Supabase depending on env
-flutter test                 # 32 unit + widget tests
+flutter test                 # unit + widget tests (test/)
 flutter analyze
 flutter build apk --release  # debug-signed unless android/key.properties exists
 ```
@@ -145,12 +154,16 @@ clinitrack/
 │   ├── repositories/           # all Supabase access (providers stay UI-state only)
 │   ├── services/               # stats_service (server counts + offline compute),
 │   │                           # storage_service (avatars + attachments)
-│   ├── screens/                # 24 routes: splash, login/register, dashboard,
-│   │                           # doctor flows, 5 patient-portal screens, profile/settings
+│   ├── screens/                # 27 routes: splash, login/register, dashboard,
+│   │                           # doctor application + verification pending,
+│   │                           # admin review queue, doctor flows,
+│   │                           # 5 patient-portal screens, profile/settings
 │   ├── widgets/                # app_scaffold/drawer/nav, user_avatar, doctor_card,
 │   │                           # patient_bottom_nav, role_guard, list states, form kit
 │   └── utils/                  # app_colors, app_theme, app_env, app_logger
-├── supabase/                   # schema.sql, storage.sql, patient_portal.sql (run in order)
+├── supabase/                   # schema, storage, patient_portal,
+│                               # doctor_verification, doctor_directory_guard
+│                               # (run in order) + reset/seed helpers
 ├── test/                       # models, stats, booking rules, portal widgets
 ├── screenshots/
 └── README.md
