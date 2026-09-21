@@ -88,9 +88,11 @@ class AuthRepository {
     }
   }
 
-  /// Doctors directory for patient bookings (Part 5).
-  /// RLS (`profiles_doctor_directory`) exposes doctors to signed-in users.
-  /// Includes profile fields so patients see a rich doctor card.
+  /// Doctors directory for patient bookings (Part 5; step 4: approved only).
+  /// RLS (`profiles_doctor_directory`) already exposes approved doctors to
+  /// signed-in users; the explicit filter below is belt-and-suspenders so a
+  /// pending profile can never leak through a policy misconfiguration.
+  /// Includes profile + verification fields so patients see a rich card.
   Future<List<DoctorDirectoryEntry>> fetchDoctors() async {
     // Offline / local mode: repository has no backend — caller shows
     // demo directory instead of failing.
@@ -98,11 +100,14 @@ class AuthRepository {
     final rows = await SupabaseConfig.client
         .from('profiles')
         .select(
-            'id, full_name, specialty, avatar_url, qualifications, experience_years, clinic_address, bio')
+            'id, full_name, specialty, avatar_url, qualifications, experience_years, clinic_address, bio, '
+            'title, chamber_name, degree, graduating_institution, graduation_year, specialties')
         .eq('role', 'Doctor')
+        .eq('verification_status', 'approved')
         .order('full_name', ascending: true);
     return (rows as List).map((r) {
       final row = r as Map<String, dynamic>;
+      final gradYear = row['graduation_year'];
       return DoctorDirectoryEntry(
         id: (row['id'] as String?) ?? '',
         name: ((row['full_name'] as String?) ?? '').trim(),
@@ -112,6 +117,18 @@ class AuthRepository {
         experienceYears: ((row['experience_years'] as String?) ?? '').trim(),
         clinicAddress: ((row['clinic_address'] as String?) ?? '').trim(),
         bio: ((row['bio'] as String?) ?? '').trim(),
+        title: ((row['title'] as String?) ?? '').trim(),
+        chamberName: ((row['chamber_name'] as String?) ?? '').trim(),
+        degree: ((row['degree'] as String?) ?? '').trim(),
+        graduatingInstitution:
+            ((row['graduating_institution'] as String?) ?? '').trim(),
+        graduationYear: gradYear == null ? '' : gradYear.toString(),
+        specialties: (row['specialties'] as List?)
+                ?.map((e) => e.toString())
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList() ??
+            const [],
       );
     }).toList();
   }
@@ -171,6 +188,14 @@ class DoctorDirectoryEntry {
   final String clinicAddress;
   final String bio;
 
+  /// Step 4 (verification): credential fields for richer patient-side cards.
+  final String title;
+  final String chamberName;
+  final String degree;
+  final String graduatingInstitution;
+  final String graduationYear;
+  final List<String> specialties;
+
   const DoctorDirectoryEntry({
     required this.id,
     required this.name,
@@ -180,5 +205,15 @@ class DoctorDirectoryEntry {
     this.experienceYears = '',
     this.clinicAddress = '',
     this.bio = '',
+    this.title = '',
+    this.chamberName = '',
+    this.degree = '',
+    this.graduatingInstitution = '',
+    this.graduationYear = '',
+    this.specialties = const [],
   });
+
+  /// Display line: stored array first, legacy single column as fallback.
+  String get specialtyLine =>
+      specialties.isNotEmpty ? specialties.join(', ') : specialty;
 }

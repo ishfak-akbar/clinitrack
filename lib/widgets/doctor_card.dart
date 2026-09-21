@@ -168,6 +168,13 @@ class DoctorCard extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                                if (doctor.title.isNotEmpty)
+                                  Text(
+                                    doctor.title,
+                                    style: theme.textTheme.bodySmall,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 if (doctor.specialty.isNotEmpty)
                                   Container(
                                     margin: const EdgeInsets.only(top: 4),
@@ -215,6 +222,23 @@ class DoctorCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                  if (doctor.chamberName.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.business_outlined, size: 16),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            doctor.chamberName,
+                            style: theme.textTheme.bodySmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   if (doctor.clinicAddress.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Row(
@@ -327,6 +351,38 @@ void showDoctorProfileSheet(
               ),
             ),
           const SizedBox(height: 16),
+          if (doctor.title.isNotEmpty)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.assignment_ind_outlined),
+              title: const Text('Title'),
+              subtitle: Text(doctor.title),
+            ),
+          if (doctor.degree.isNotEmpty)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.workspace_premium_outlined),
+              title: const Text('Degree'),
+              subtitle: Text(doctor.degree),
+            ),
+          if (doctor.graduatingInstitution.isNotEmpty)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.account_balance_outlined),
+              title: const Text('Graduated from'),
+              subtitle: Text(
+                doctor.graduationYear.isEmpty
+                    ? doctor.graduatingInstitution
+                    : '${doctor.graduatingInstitution} · ${doctor.graduationYear}',
+              ),
+            ),
+          if (doctor.specialtyLine.isNotEmpty)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.medical_services_outlined),
+              title: const Text('Specialties'),
+              subtitle: Text(doctor.specialtyLine),
+            ),
           if (doctor.qualifications.isNotEmpty)
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -427,6 +483,7 @@ class DoctorSelectTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       [
+                        doctor.title,
                         doctor.specialty,
                         doctor.experienceYears.isEmpty
                             ? ''

@@ -93,6 +93,41 @@ void main() {
       await tester.tap(find.text('View profile'));
       expect(viewed, isTrue);
     });
+
+    testWidgets('renders verification credentials on card and sheet',
+        (tester) async {
+      const verified = DoctorDirectoryEntry(
+        id: 'd9',
+        name: 'Dr. Verified Example',
+        specialty: 'Surgery',
+        experienceYears: '10',
+        title: 'Surgeon',
+        chamberName: 'City Surgical Clinic',
+        degree: 'MBBS',
+        graduatingInstitution: 'Dhaka Medical College',
+        graduationYear: '2012',
+        specialties: ['Surgery', 'General Physician'],
+      );
+      await tester.pumpWidget(
+          _wrap(const DoctorCard(doctor: verified)));
+      expect(find.text('Surgeon'), findsOneWidget);
+      expect(find.text('City Surgical Clinic'), findsOneWidget);
+
+      showDoctorProfileSheet(
+        tester.element(find.byType(DoctorCard)),
+        verified,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('MBBS'), findsOneWidget);
+      expect(
+        find.textContaining('Dhaka Medical College'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Surgery, General Physician'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('StatusChip (one language for both portals)', () {

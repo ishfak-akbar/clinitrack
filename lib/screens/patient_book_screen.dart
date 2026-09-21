@@ -122,6 +122,12 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
           experienceYears: '8',
           clinicAddress: 'Zindabazar, Sylhet',
           bio: 'Heart care, hypertension and preventive cardiology.',
+          title: 'Consultant',
+          chamberName: 'City Heart Clinic',
+          degree: 'MBBS',
+          graduatingInstitution: 'Sylhet MAG Osmani Medical College',
+          graduationYear: '2016',
+          specialties: ['Cardiology', 'General Physician'],
         ),
         DoctorDirectoryEntry(
           id: 'demo-2',
@@ -131,6 +137,12 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
           experienceYears: '5',
           clinicAddress: 'Ambarkhana, Sylhet',
           bio: 'Fever, diabetes follow-ups and general consultations.',
+          title: 'General Practitioner',
+          chamberName: 'Ambarkhana Clinic',
+          degree: 'MBBS',
+          graduatingInstitution: 'Jalalabad Ragib-Rabeya Medical College',
+          graduationYear: '2019',
+          specialties: ['General Physician'],
         ),
         DoctorDirectoryEntry(
           id: 'demo-3',
@@ -140,6 +152,12 @@ class _PatientBookScreenState extends State<PatientBookScreen> {
           experienceYears: '6',
           clinicAddress: 'Mirboxtula, Sylhet',
           bio: 'Child health, vaccination and growth monitoring.',
+          title: 'Pediatrician',
+          chamberName: 'Child Care Chamber',
+          degree: 'MBBS',
+          graduatingInstitution: 'North East Medical College',
+          graduationYear: '2018',
+          specialties: ['Pediatrics'],
         ),
       ];
 
